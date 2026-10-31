@@ -15,4 +15,10 @@ class Config
         }
         return self::$cache[$clave] ?? $default;
     }
+
+    public static function set(string $clave, string $valor): void
+    {
+        Database::run('INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)', [$clave, $valor]);
+        self::$cache = null;
+    }
 }

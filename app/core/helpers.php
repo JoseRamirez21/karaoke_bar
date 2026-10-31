@@ -41,3 +41,12 @@ function hora12(string $datetime): string
 {
     return str_replace(['AM', 'PM'], ['a. m.', 'p. m.'], date('g:i A', strtotime($datetime)));
 }
+
+function post(string $key, string $default = ''): string { return trim((string) ($_POST[$key] ?? $default)); }
+
+function fecha_corta(?string $datetime): string
+{
+    return $datetime ? date('d/m/Y', strtotime($datetime)) . ' ' . hora12($datetime) : 'Nunca';
+}
+
+function sel(mixed $a, mixed $b): string { return (string) $a === (string) $b ? ' selected' : ''; }

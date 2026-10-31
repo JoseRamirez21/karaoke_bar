@@ -44,4 +44,31 @@ abstract class Controller
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }
+
+    /** Convierte el parámetro de la URL en un id válido o muestra 404. */
+    protected function idOr404(string $id): int
+    {
+        $n = (int) $id;
+        if ($n <= 0 || (string) $n !== $id) {
+            (new ErrorController())->show404();
+            exit;
+        }
+        return $n;
+    }
+
+    /** Vuelve al formulario con el mensaje de error y lo que el usuario había escrito. */
+    protected function fallar(string $ruta, string $mensaje): never
+    {
+        $old = $_POST;
+        unset($old['_csrf'], $old['password'], $old['actual'], $old['nueva'], $old['repetir']);
+        with_old($old);
+        flash('error', $mensaje);
+        redirect($ruta);
+    }
+
+    protected function listo(string $ruta, string $mensaje): never
+    {
+        flash('success', $mensaje);
+        redirect($ruta);
+    }
 }
