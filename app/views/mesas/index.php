@@ -18,12 +18,14 @@ $nombreEstado = ['libre' => 'Libre', 'ocupada' => 'Ocupada', 'reservada' => 'Res
   <section class="panel"><p class="empty mb-0">Aún no hay mesas<?= $esAdmin ? '. Crea la primera con el botón "Nueva mesa".' : '.' ?></p></section>
 <?php else: ?>
   <section class="panel panel--stage mb-4">
+    <p class="text-secondary mb-3">Toca una mesa libre para abrirla, o una ocupada para ver su cuenta.</p>
     <div class="floor">
-      <?php foreach ($mesas as $m): if ($m['estado'] === 'inactiva') continue; ?>
-        <div class="mesa mesa--<?= e($m['estado']) ?>" title="Mesa <?= e($m['numero']) ?>, para <?= (int) $m['capacidad'] ?> personas">
+      <?php foreach ($mesas as $m): if ($m['estado'] === 'inactiva') continue;
+          $href = $m['sesion_id'] ? url('mesas/cuenta/' . (int) $m['sesion_id']) : url('mesas/abrir/' . (int) $m['id']); ?>
+        <a class="mesa mesa--<?= e($m['estado']) ?>" href="<?= $href ?>" title="Mesa <?= e($m['numero']) ?>, para <?= (int) $m['capacidad'] ?> personas">
           <span class="mesa__n"><?= e($m['numero']) ?></span>
           <span class="mesa__e"><?= e($nombreEstado[$m['estado']] ?? $m['estado']) ?></span>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
     <ul class="legend">

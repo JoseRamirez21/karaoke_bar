@@ -3,8 +3,14 @@ class Mesa
 {
     public static function todas(bool $incluirInactivas = true): array
     {
-        $where = $incluirInactivas ? '' : "WHERE estado <> 'inactiva'";
-        return Database::all("SELECT * FROM mesas $where ORDER BY CAST(numero AS UNSIGNED), numero");
+        $where = $incluirInactivas ? '' : "WHERE m.estado <> 'inactiva'";
+        return Database::all(
+            "SELECT m.*, s.id AS sesion_id, s.abierta_en, s.cliente
+               FROM mesas m
+               LEFT JOIN sesiones_mesa s ON s.mesa_id = m.id AND s.estado = 'abierta'
+               $where
+              ORDER BY CAST(m.numero AS UNSIGNED), m.numero"
+        );
     }
 
     public static function buscar(int $id): ?array

@@ -25,7 +25,12 @@ Cambia la contraseña del admin en **Mi perfil** apenas entres. Borra el usuario
 | Usuarios | admin | Crear cajeros/admins, editar, desactivar (no se borran), restablecer contraseña |
 | Categorías | admin | Cervezas, licores, piqueos... (no se desactiva una con productos activos) |
 | Productos | admin | Precio, stock mínimo, entradas/salidas/ajustes de stock con historial |
-| Salón y mesas | admin / cajero | El cajero ve el estado de las mesas; el admin crea y edita mesas y genera sus QR |
+| Salón y mesas | admin / cajero | Abrir mesa (activa su QR), ver su cuenta y cerrarla. El admin además crea/edita mesas y genera los QR |
+| Mi caja | admin / cajero | Abrir turno con fondo inicial, ver lo cobrado por método de pago y cerrar contando el efectivo (avisa si falta o sobra) |
+
+## Qué falta (próximos pasos)
+Vender (carrito y cobro), entregar/anular pedidos, combos, reservas, la cola de karaoke con YouTube,
+reportes y bitácora. En el menú aparecen como "Pronto".
 
 ## QR de las mesas (importante)
 Los QR apuntan a la dirección que guardes en **Salón y mesas > Imprimir QR**. Los celulares no pueden abrir
@@ -38,8 +43,8 @@ permitir a Apache (puerto 80) en redes privadas. La página de impresión carga 
 app/
   config/      config.php (BD, sesión), menu.php (menú por rol)
   core/        Router, Database (PDO), Auth, Csrf, Session, Bitacora, helpers
-  controllers/ Auth, Dashboard, Perfil, Usuarios, Categorias, Productos, Mesas, Error
-  models/      Usuario, Categoria, Producto, Mesa, Estadistica, Config
+  controllers/ Auth, Dashboard, Perfil, Usuarios, Categorias, Productos, Mesas, Caja, Error
+  models/      Usuario, Categoria, Producto, Mesa, SesionMesa, Caja, Estadistica, Config
   views/       layouts (main, auth), auth, dashboard, perfil, errors
 database/      karaoke_bar.sql, datos_demo.sql
 public/        index.php (único punto de entrada), assets/css, assets/js

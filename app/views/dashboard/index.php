@@ -58,7 +58,7 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
 
       <?php if ($ventas === null): ?>
         <p class="empty">No tienes un turno abierto. Abre tu caja antes de empezar a cobrar.</p>
-        <button class="btn btn-outline-brass" type="button" disabled>Abrir caja (pronto)</button>
+        <a class="btn btn-brass" href="<?= url('caja') ?>">Abrir caja</a>
       <?php else: ?>
         <p class="big-figure"><?= e(money($ventas['total'])) ?></p>
         <p class="text-secondary mb-4">

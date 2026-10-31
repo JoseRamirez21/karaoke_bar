@@ -130,6 +130,76 @@ class MesasController extends Controller
     }
 
     // ------------------------------------------------------------------
+    // Operación del salón (admin y cajero)
+    // ------------------------------------------------------------------
+
+    /** Formulario para abrir una mesa libre (o reservada). */
+    public function abrir(string $id = '0'): void
+    {
+        $id = $this->idOr404($id);
+        $m  = Mesa::buscar($id) ?? $this->noExiste();
+
+        if ($m['estado'] === 'inactiva') {
+            flash('error', 'Esta mesa está desactivada.');
+            redirect('mesas');
+        }
+        if ($s = SesionMesa::abierta($id)) {          // ya está abierta: vamos directo a su cuenta
+            redirect('mesas/cuenta/' . (int) $s['id']);
+        }
+        $this->view('mesas/abrir', ['title' => 'Abrir mesa ' . $m['numero'], 'm' => $m]);
+    }
+
+    public function iniciar(string $id = '0'): void
+    {
+        $this->requirePost();
+        $id = $this->idOr404($id);
+        $m  = Mesa::buscar($id) ?? $this->noExiste();
+
+        $cliente = post('cliente');
+        if (mb_strlen($cliente) > 100) $this->fallar("mesas/abrir/$id", 'La referencia es muy larga (máximo 100 caracteres).');
+
+        try {
+            $sid = SesionMesa::abrir($id, Auth::id(), $cliente);
+        } catch (AppException $e) {
+            $this->fallar("mesas/abrir/$id", $e->getMessage());
+        }
+        Bitacora::log('mesa_abierta', 'sesiones_mesa', $sid, 'Mesa ' . $m['numero'] . ($cliente !== '' ? ', ' . $cliente : ''));
+        $this->listo('mesas/cuenta/' . $sid, 'Mesa ' . $m['numero'] . ' abierta.');
+    }
+
+    /** La cuenta de una mesa (el id de la URL es el de la sesión). */
+    public function cuenta(string $id = '0'): void
+    {
+        $id = $this->idOr404($id);
+        $s  = SesionMesa::buscar($id) ?? $this->noExiste();
+        $this->view('mesas/cuenta', [
+            'title'     => 'Mesa ' . $s['mesa'],
+            's'         => $s,
+            'ventas'    => SesionMesa::ventas($id),
+            'resumen'   => SesionMesa::resumen($id),
+            'canciones' => SesionMesa::canciones($id),
+        ]);
+    }
+
+    public function cerrar(string $id = '0'): void
+    {
+        $this->requirePost();
+        $id = $this->idOr404($id);
+        $s  = SesionMesa::buscar($id) ?? $this->noExiste();
+
+        try {
+            $r = SesionMesa::cerrar($id, Auth::id());
+        } catch (AppException $e) {
+            $this->fallar("mesas/cuenta/$id", $e->getMessage());
+        }
+        Bitacora::log('mesa_cerrada', 'sesiones_mesa', $id, 'Mesa ' . $s['mesa'] . ', consumo ' . money($r['total']));
+
+        $msg = 'Mesa ' . $s['mesa'] . ' cerrada. Consumo total: ' . money($r['total']) . '.';
+        if ($r['quitadas'] > 0) $msg .= ' Se quitaron ' . $r['quitadas'] . ($r['quitadas'] > 1 ? ' canciones pendientes.' : ' canción pendiente.');
+        $this->listo('mesas/cuenta/' . $id, $msg);
+    }
+
+    // ------------------------------------------------------------------
     private function soloAdmin(): void
     {
         if (!Auth::is('admin')) {

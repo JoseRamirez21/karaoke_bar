@@ -3,11 +3,11 @@
 return [
   ['grupo' => 'Operación', 'items' => [
     ['label' => 'Panel',            'icon' => 'bi-grid-1x2',      'route' => 'dashboard', 'roles' => ['admin','cajero'], 'ready' => true],
-    ['label' => 'Vender',           'icon' => 'bi-receipt',       'route' => 'ventas',    'roles' => ['admin','cajero'], 'ready' => false],
+    ['label' => 'Vender',           'icon' => 'bi-receipt',       'route' => 'ventas',    'roles' => ['admin','cajero'], 'ready' => true],
     ['label' => 'Salón y mesas',    'icon' => 'bi-columns-gap',   'route' => 'mesas',     'roles' => ['admin','cajero'], 'ready' => true],
     ['label' => 'Cola de karaoke',  'icon' => 'bi-mic',           'route' => 'cola',      'roles' => ['admin','cajero'], 'ready' => false],
     ['label' => 'Reservas',         'icon' => 'bi-calendar-check','route' => 'reservas',  'roles' => ['admin','cajero'], 'ready' => false],
-    ['label' => 'Mi caja',          'icon' => 'bi-cash-stack',    'route' => 'caja',      'roles' => ['admin','cajero'], 'ready' => false],
+    ['label' => 'Mi caja',          'icon' => 'bi-cash-stack',    'route' => 'caja',      'roles' => ['admin','cajero'], 'ready' => true],
   ]],
   ['grupo' => 'Administración', 'items' => [
     ['label' => 'Productos',        'icon' => 'bi-cup-straw',     'route' => 'productos', 'roles' => ['admin'], 'ready' => true],
