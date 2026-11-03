@@ -86,13 +86,20 @@ class VentasController extends Controller
         $this->listo('ventas/ticket/' . $v['id'], $msg);
     }
 
-    /** El ticket de una venta (se puede imprimir). */
+       /** El ticket de una venta (se puede imprimir). */
     public function ticket(string $id = '0'): void
     {
         $id = $this->idOr404($id);
         $v  = Venta::buscar($id);
         if (!$v) { (new ErrorController())->show404(); exit; }
-        $this->view('ventas/ticket', ['title' => 'Ticket ' . $v['codigo'], 'v' => $v, 'items' => Venta::detalle($id)]);
+
+        $turno = Database::one('SELECT id, estado FROM turnos_caja WHERE id = ?', [$v['turno_id']]);
+        $this->view('ventas/ticket', [
+            'title'         => 'Ticket ' . $v['codigo'],
+            'v'             => $v,
+            'items'         => Venta::detalle($id),
+            'razonNoAnular' => Venta::razonNoAnular($v, $turno, Auth::id(), Auth::is('admin')),
+        ]);
     }
 
     /** Marca el pedido como entregado al cliente. */
@@ -115,4 +122,27 @@ class VentasController extends Controller
         Bitacora::log('venta_entregada', 'ventas', $id, $v['codigo']);
         $this->listo($volver, 'Pedido ' . $v['codigo'] . ' entregado.');
     }
+
+
+    /** Anula un pedido cobrado que aún no se entregó: devuelve el stock y deja el motivo registrado. */
+    public function anular(string $id = '0'): void
+    {
+        $this->requirePost();
+        $id = $this->idOr404($id);
+        $v  = Venta::buscar($id);
+        if (!$v) { (new ErrorController())->show404(); exit; }
+
+        $ruta   = 'ventas/ticket/' . $id;
+        $motivo = post('motivo');
+        if (!Validar::largo($motivo, 3, 200)) $this->fallar($ruta, 'Escribe el motivo de la anulación (mínimo 3 letras).');
+
+        try {
+            Venta::anular($id, Auth::id(), Auth::is('admin'), $motivo);
+        } catch (AppException $e) {
+            $this->fallar($ruta, $e->getMessage());
+        }
+        Bitacora::log('venta_anulada', 'ventas', $id, $v['codigo'] . ', ' . money($v['total']) . ', motivo: ' . $motivo);
+        $this->listo($ruta, 'Pedido ' . $v['codigo'] . ' anulado. Se devolvió el stock.');
+    }
+
 }

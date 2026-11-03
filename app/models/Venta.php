@@ -113,13 +113,14 @@ class Venta
         }
     }
 
-    public static function buscar(int $id): ?array
+       public static function buscar(int $id): ?array
     {
         return Database::one(
-            'SELECT v.*, mp.nombre AS metodo, u.nombre AS cajero, m.numero AS mesa, s.cliente
+            'SELECT v.*, mp.nombre AS metodo, u.nombre AS cajero, m.numero AS mesa, s.cliente, ua.nombre AS anulada_por_nombre
                FROM ventas v
                JOIN metodos_pago mp ON mp.id = v.metodo_pago_id
                JOIN usuarios u ON u.id = v.usuario_id
+               LEFT JOIN usuarios ua ON ua.id = v.anulada_por
                LEFT JOIN sesiones_mesa s ON s.id = v.sesion_mesa_id
                LEFT JOIN mesas m ON m.id = s.mesa_id
               WHERE v.id = ?',
@@ -138,4 +139,58 @@ class Venta
         $n = Database::run("UPDATE ventas SET estado = 'entregada', entregada_en = NOW() WHERE id = ? AND estado = 'pagada'", [$id]);
         if ($n === 0) throw new AppException('Este pedido ya fue entregado o está anulado.');
     }
+
+
+    /**
+     * ¿Se puede anular este pedido? Devuelve null si sí, o la razón (texto) si no.
+     * Reglas: solo si aún no se entregó, su turno de caja sigue abierto, y lo anula
+     * quien lo cobró o el administrador.
+     */
+    public static function razonNoAnular(array $venta, ?array $turno, int $usuarioId, bool $esAdmin): ?string
+    {
+        if ($venta['estado'] === 'anulada')   return 'Este pedido ya está anulado.';
+        if ($venta['estado'] === 'entregada') return 'Este pedido ya se entregó, así que no se puede anular.';
+        if (!$turno || $turno['estado'] !== 'abierto') return 'El turno de esta venta ya está cerrado: su caja no se puede modificar.';
+        if (!$esAdmin && (int) $venta['usuario_id'] !== $usuarioId) return 'Solo quien cobró el pedido o el administrador puede anularlo.';
+        return null;
+    }
+
+    /** Anula el pedido y devuelve el stock, todo en una transacción. Lanza AppException si no se puede. */
+    public static function anular(int $id, int $usuarioId, bool $esAdmin, string $motivo): void
+    {
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $previo = Database::one('SELECT turno_id FROM ventas WHERE id = ?', [$id]);
+            if (!$previo) throw new AppException('El pedido no existe.');
+
+            // Mismo orden de bloqueos que al cobrar y al cerrar la caja: primero el turno, luego la venta.
+            $turno = Database::one('SELECT id, estado FROM turnos_caja WHERE id = ? FOR UPDATE', [$previo['turno_id']]);
+            $v     = Database::one('SELECT * FROM ventas WHERE id = ? FOR UPDATE', [$id]);
+            if (!$v) throw new AppException('El pedido no existe.');
+
+            $razon = self::razonNoAnular($v, $turno, $usuarioId, $esAdmin);
+            if ($razon !== null) throw new AppException($razon);
+
+            $lineas = Database::all('SELECT producto_id, cantidad FROM detalle_venta WHERE venta_id = ? AND producto_id IS NOT NULL ORDER BY producto_id', [$id]);
+            foreach ($lineas as $l) {
+                $p     = Database::one('SELECT stock FROM productos WHERE id = ? FOR UPDATE', [$l['producto_id']]);
+                $nuevo = (int) $p['stock'] + (int) $l['cantidad'];
+                Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $l['producto_id']]);
+                Database::run(
+                    "INSERT INTO movimientos_stock (producto_id, usuario_id, tipo, cantidad, stock_resultante, motivo) VALUES (?,?,'anulacion',?,?,?)",
+                    [$l['producto_id'], $usuarioId, $l['cantidad'], $nuevo, mb_substr('Anulación ' . $v['codigo'] . ': ' . $motivo, 0, 200)]
+                );
+            }
+            Database::run(
+                "UPDATE ventas SET estado = 'anulada', anulada_por = ?, anulada_en = NOW(), motivo_anulacion = ? WHERE id = ?",
+                [$usuarioId, $motivo, $id]
+            );
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
 }

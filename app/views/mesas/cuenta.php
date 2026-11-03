@@ -43,6 +43,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
                     <?= csrf_field() ?>
                     <input type="hidden" name="volver" value="mesas/cuenta/<?= (int) $s['id'] ?>">
                     <button class="btn btn-sm btn-outline-brass" type="submit">Marcar entregado</button>
+                          <a class="btn btn-sm btn-outline-field" href="<?= url('ventas/ticket/' . (int) $v['id'] . '#anular') ?>">Anular</a>
                   </form>
                 <?php endif; ?>
               </div>

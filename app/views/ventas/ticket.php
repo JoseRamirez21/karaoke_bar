@@ -1,7 +1,8 @@
 <?php
-$estado = ['pagada' => ['brass', 'Por entregar'], 'entregada' => ['ok', 'Entregada'], 'anulada' => ['danger', 'Anulada']][$v['estado']] ?? ['plain', $v['estado']];
-$local  = Config::get('nombre_local', 'Karaoke Bar');
-$sesion = (int) $v['sesion_mesa_id'];
+$estado  = ['pagada' => ['brass', 'Por entregar'], 'entregada' => ['ok', 'Entregada'], 'anulada' => ['danger', 'Anulada']][$v['estado']] ?? ['plain', $v['estado']];
+$local   = Config::get('nombre_local', 'Karaoke Bar');
+$sesion  = (int) $v['sesion_mesa_id'];
+$anulada = $v['estado'] === 'anulada';
 ?>
 <div class="no-print">
   <header class="page-head page-head--actions">
@@ -25,10 +26,38 @@ $sesion = (int) $v['sesion_mesa_id'];
         <button class="btn btn-sm btn-brass" type="submit">Marcar entregado</button>
       </form>
     </div>
+
+    <?php if ($razonNoAnular === null): ?>
+      <section class="panel mb-4" id="anular" style="max-width:640px">
+        <h2 class="panel__title mb-1">Anular este pedido</h2>
+        <p class="text-secondary">Úsalo si te equivocaste al cobrar y el pedido aún no se entregó. Se devuelve el stock y deja de contar en la caja.</p>
+        <form method="post" action="<?= url('ventas/anular/' . (int) $v['id']) ?>" autocomplete="off"
+              data-confirm="¿Anular el pedido <?= e($v['codigo']) ?>?"
+              data-confirm-text="Se devolverá el stock y se quitará de la caja. No se puede deshacer."
+              data-confirm-button="Sí, anular">
+          <?= csrf_field() ?>
+          <label class="form-label" for="motivo">Motivo <small>(obligatorio)</small></label>
+          <div class="input-group">
+            <input class="form-control" id="motivo" name="motivo" maxlength="200" minlength="3" required placeholder="Ej.: me equivoqué de producto">
+            <button class="btn btn-outline-brass" type="submit">Anular pedido</button>
+          </div>
+        </form>
+      </section>
+    <?php else: ?>
+      <p class="form-hint"><?= e($razonNoAnular) ?></p>
+    <?php endif; ?>
+  <?php endif; ?>
+
+  <?php if ($anulada): ?>
+    <div class="notice notice--warn">
+      <i class="bi bi-x-octagon"></i>
+      <span>Pedido anulado por <?= e($v['anulada_por_nombre']) ?> el <?= e(fecha_corta($v['anulada_en'])) ?>. Motivo: <?= e($v['motivo_anulacion']) ?></span>
+    </div>
   <?php endif; ?>
 </div>
 
-<article class="ticket">
+<article class="ticket<?= $anulada ? ' ticket--anulada' : '' ?>">
+  <?php if ($anulada): ?><p class="ticket__sello">ANULADO</p><?php endif; ?>
   <h2><?= e($local) ?></h2>
   <p class="ticket__sub">Ticket <?= e($v['codigo']) ?></p>
   <div class="ticket__line"><span>Fecha</span><span><?= e(fecha_corta($v['created_at'])) ?></span></div>
