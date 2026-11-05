@@ -330,3 +330,23 @@ a.mesa:hover { transform: translateY(-3px); background-color: rgba(255,255,255,.
 .cancion__t strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cancion__t span { color: var(--muted); font-size: .86rem; }
 .cancion__n { width: 1.6rem; text-align: center; color: var(--brass-hi); font-family: var(--font-display); font-size: 1.2rem; flex: none; }
+
+/* ===== Pantalla del karaoke (TV) ===== */
+.tv-body { margin: 0; height: 100vh; overflow: hidden; background: #000; }
+.tv { display: grid; grid-template-columns: minmax(0, 1fr) 340px; height: 100vh; }
+.tv__video { position: relative; background: #000; }
+.tv__video iframe, .tv__video #reproductor { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tv__capa { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2rem; text-align: center; padding: 2rem; background: radial-gradient(circle at 50% 30%, #3A1E31, #160a12 70%); }
+.tv__capa[hidden] { display: none; }
+.tv__capa h1 { font-size: clamp(2.2rem, 5vw, 4.2rem); }
+.tv__capa p { color: var(--muted); font-size: 1.2rem; margin: 0; }
+.tv__capa--vacio { z-index: 1; }
+.tv__lado { padding: 1.5rem 1.25rem; background: var(--surface); border-left: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; }
+.tv__etiqueta { color: var(--brass-hi); font-size: .9rem; margin: 0 0 .35rem; }
+.tv__lado h2 { font-size: 1.6rem; line-height: 1.2; margin: 0; }
+.tv__mesa { color: var(--muted); margin: .3rem 0 0; font-size: 1.1rem; }
+.tv__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.tv__lista li { display: flex; flex-direction: column; padding-bottom: .55rem; border-bottom: 1px solid var(--line); }
+.tv__lista li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv__lista li small { color: var(--muted); }
+@media (max-width: 900px) { .tv { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; } }

@@ -1,7 +1,10 @@
 <?php $selSesion = (int) (($GLOBALS['_old']['sesion_id'] ?? null) ?: $sesionPre); ?>
-<header class="page-head">
-  <h1>Cola de karaoke</h1>
-  <p>Lo que suena y lo que viene. Cada mesa puede tener hasta <?= (int) $max ?> canciones en la fila.</p>
+<header class="page-head page-head--actions">
+  <div>
+    <h1>Cola de karaoke</h1>
+    <p>Lo que suena y lo que viene. Cada mesa puede tener hasta <?= (int) $max ?> canciones en la fila.</p>
+  </div>
+  <a class="btn btn-brass" href="<?= url('pantalla') ?>" target="_blank" rel="noopener"><i class="bi bi-tv"></i> Abrir pantalla del karaoke</a>
 </header>
 
 <section class="panel mb-4 ahora">
