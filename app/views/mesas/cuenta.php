@@ -59,8 +59,9 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
       <h2 class="panel__title mb-3">Karaoke</h2>
       <ul class="rows">
         <li><div><strong>Canciones pedidas</strong></div><strong><?= (int) $pedidas ?></strong></li>
-        <li><div><strong>En cola ahora</strong></div><strong><?= (int) $enCola ?></strong></li>
+                <li><div><strong>En cola ahora</strong></div><strong><?= (int) $enCola ?></strong></li>
       </ul>
+      <?php if ($abierta): ?><a class="btn btn-sm btn-outline-field mt-3" href="<?= url('cola?sesion=' . (int) $s['id']) ?>"><i class="bi bi-music-note-list"></i> Agregar canción</a><?php endif; ?>
     </section>
 
     <?php if ($abierta): ?>
