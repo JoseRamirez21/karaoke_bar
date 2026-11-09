@@ -44,3 +44,5 @@ header('Referrer-Policy: same-origin');
 
 Session::start();
 (new Router())->dispatch();
+
+
