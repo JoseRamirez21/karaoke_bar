@@ -45,7 +45,7 @@
   function recalcular() {
     total = 0;
     lista.innerHTML = '';
-    tabla.querySelectorAll('tbody tr[data-id]').forEach(function (tr) {
+    form.querySelectorAll('tbody tr[data-precio]').forEach(function (tr) {
       var input = tr.querySelector('input[type=number]');
       if (!input) return;
       var q = cantidad(input);
@@ -66,14 +66,14 @@
     actualizarVuelto();
   }
 
-  tabla.addEventListener('click', function (e) {
+  form.addEventListener('click', function (e) {
     var b = e.target.closest('[data-qty]');
     if (!b) return;
     var input = b.parentElement.querySelector('input[type=number]');
     input.value = (parseInt(input.value, 10) || 0) + parseInt(b.dataset.qty, 10);
     recalcular();
   });
-  tabla.addEventListener('input', recalcular);
+  form.addEventListener('input', recalcular);
   metodo.addEventListener('change', actualizarVuelto);
   recibido.addEventListener('input', actualizarVuelto);
 

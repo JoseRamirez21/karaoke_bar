@@ -1,6 +1,7 @@
 <?php
 $old       = $GLOBALS['_old'] ?? [];
 $oldItems  = is_array($old['items'] ?? null) ? $old['items'] : [];
+$oldCombos = is_array($old['combos'] ?? null) ? $old['combos'] : [];
 $selSesion = (int) ($old['sesion_id'] ?? $sesionPre);
 $selMetodo = (int) ($old['metodo_id'] ?? 0);
 ?>
@@ -23,6 +24,36 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
   <div class="row g-4">
     <!-- PRODUCTOS -->
     <div class="col-xl-8">
+      <?php if ($combos): ?>
+      <section class="panel panel--flush mb-3">
+        <div class="panel__head px-4 pt-3 mb-0"><h2 class="panel__title">Combos y promociones</h2></div>
+        <div class="table-responsive">
+          <table class="table table-app align-middle mb-0" id="tablaCombos">
+            <tbody>
+            <?php foreach ($combos as $co):
+                $agot = (int) $co['disponibles'] <= 0;
+                $q = min((int) ($oldCombos[$co['id']] ?? 0), (int) $co['disponibles']); ?>
+              <tr class="<?= $agot ? 'is-off' : '' ?>" data-id="<?= (int) $co['id'] ?>" data-nombre="<?= e($co['nombre']) ?>" data-precio="<?= e(number_format((float) $co['precio'], 2, '.', '')) ?>">
+                <td><strong><?= e($co['nombre']) ?></strong> <span class="badge-soft badge-soft--brass">Combo</span><small class="d-block text-secondary"><?= e($co['incluye']) ?></small></td>
+                <td class="text-end"><?= e(money($co['precio'])) ?></td>
+                <td class="text-end"><?= $agot ? '<span class="badge-soft badge-soft--danger">Agotado</span>' : (int) $co['disponibles'] ?></td>
+                <td>
+                  <?php if (!$agot): ?>
+                    <div class="qty">
+                      <button type="button" class="btn btn-outline-field" data-qty="-1" aria-label="Quitar uno">−</button>
+                      <input type="number" class="form-control" name="combos[<?= (int) $co['id'] ?>]" value="<?= $q ?>" min="0" max="<?= (int) $co['disponibles'] ?>" inputmode="numeric" aria-label="Cantidad de <?= e($co['nombre']) ?>">
+                      <button type="button" class="btn btn-outline-field" data-qty="1" aria-label="Agregar uno">+</button>
+                    </div>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <?php endif; ?>
+
       <div class="toolbar">
         <div class="search-field">
           <i class="bi bi-search"></i>

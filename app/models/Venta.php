@@ -32,11 +32,13 @@ class Venta
      * Registra la venta ya cobrada: guarda el pedido, descuenta el stock y deja el historial,
      * todo en una sola transacción (si algo falla, no se guarda nada).
      * Los precios SIEMPRE se leen de la base de datos, nunca de lo que mande el navegador.
+     * Un combo descuenta el stock de cada producto que incluye (sumado con lo que se venda suelto).
      *
-     * @param array<int,int> $items  producto_id => cantidad
+     * @param array<int,int> $items   producto_id => cantidad
+     * @param array<int,int> $combos  combo_id => cantidad
      * @return array{id:int, codigo:string, total:float, vuelto:?float, metodo:string}
      */
-    public static function crear(int $usuarioId, int $turnoId, ?int $sesionId, int $metodoId, array $items, ?string $recibido): array
+    public static function crear(int $usuarioId, int $turnoId, ?int $sesionId, int $metodoId, array $items, array $combos, ?string $recibido): array
     {
         $pdo = Database::pdo();
         $pdo->beginTransaction();
@@ -52,10 +54,28 @@ class Venta
             $metodo = Database::one('SELECT id, nombre, es_efectivo FROM metodos_pago WHERE id = ? AND estado = 1', [$metodoId]);
             if (!$metodo) throw new AppException('Elige cómo paga el cliente.');
 
-            ksort($items);   // mismo orden siempre: evita bloqueos cruzados entre dos cajeros
-            $lineas = [];
-            $total  = 0.0;
-            foreach ($items as $pid => $cant) {
+            // 1) Cuánto de cada producto hace falta en total (suelto + dentro de los combos)
+            $necesita = [];
+            foreach ($items as $pid => $cant) $necesita[(int) $pid] = ($necesita[(int) $pid] ?? 0) + $cant;
+
+            $lineasCombo = [];
+            ksort($combos);
+            foreach ($combos as $cid => $cant) {
+                $co = Database::one(
+                    'SELECT c.id, c.nombre, c.precio FROM combos c
+                      WHERE c.id = ? AND c.estado = 1 AND (c.vigente_desde IS NULL OR c.vigente_desde <= CURDATE()) AND (c.vigente_hasta IS NULL OR c.vigente_hasta >= CURDATE())',
+                    [$cid]
+                );
+                $comp = $co ? Database::all('SELECT producto_id, cantidad FROM combo_productos WHERE combo_id = ?', [$cid]) : [];
+                if (!$co || !$comp) throw new AppException('Una promoción del pedido ya no está disponible. Actualiza la pantalla e inténtalo de nuevo.');
+                foreach ($comp as $x) $necesita[(int) $x['producto_id']] = ($necesita[(int) $x['producto_id']] ?? 0) + (int) $x['cantidad'] * $cant;
+                $lineasCombo[] = ['combo' => $co, 'cant' => $cant];
+            }
+
+            // 2) Bloquear los productos (siempre en el mismo orden) y comprobar stock
+            ksort($necesita);
+            $productos = [];
+            foreach ($necesita as $pid => $cant) {
                 $p = Database::one(
                     'SELECT p.id, p.nombre, p.precio, p.stock, p.estado, c.estado AS cat_estado
                        FROM productos p JOIN categorias c ON c.id = p.categoria_id
@@ -68,10 +88,24 @@ class Venta
                 if ($cant > (int) $p['stock']) {
                     throw new AppException('No alcanza el stock de ' . $p['nombre'] . ': quedan ' . (int) $p['stock'] . '.');
                 }
-                $sub     = round((float) $p['precio'] * $cant, 2);
-                $total  += $sub;
-                $lineas[] = ['p' => $p, 'cant' => $cant, 'sub' => $sub];
+                $productos[$pid] = $p;
             }
+
+            // 3) Renglones y total
+            $lineas = [];
+            $total  = 0.0;
+            foreach ($items as $pid => $cant) {
+                $p = $productos[(int) $pid];
+                $sub = round((float) $p['precio'] * $cant, 2);
+                $total += $sub;
+                $lineas[] = ['producto_id' => (int) $pid, 'combo_id' => null, 'desc' => $p['nombre'], 'cant' => $cant, 'precio' => $p['precio'], 'sub' => $sub];
+            }
+            foreach ($lineasCombo as $l) {
+                $sub = round((float) $l['combo']['precio'] * $l['cant'], 2);
+                $total += $sub;
+                $lineas[] = ['producto_id' => null, 'combo_id' => (int) $l['combo']['id'], 'desc' => $l['combo']['nombre'], 'cant' => $l['cant'], 'precio' => $l['combo']['precio'], 'sub' => $sub];
+            }
+            if (!$lineas) throw new AppException('Agrega al menos un producto al pedido.');
             $total = round($total, 2);
 
             $vuelto = null;
@@ -93,16 +127,18 @@ class Venta
             Database::run('UPDATE ventas SET codigo = ? WHERE id = ?', [$codigo, $id]);
 
             foreach ($lineas as $l) {
-                $p     = $l['p'];
-                $nuevo = (int) $p['stock'] - $l['cant'];
                 Database::run(
-                    'INSERT INTO detalle_venta (venta_id, producto_id, descripcion, cantidad, precio_unitario, subtotal) VALUES (?,?,?,?,?,?)',
-                    [$id, $p['id'], $p['nombre'], $l['cant'], $p['precio'], number_format($l['sub'], 2, '.', '')]
+                    'INSERT INTO detalle_venta (venta_id, producto_id, combo_id, descripcion, cantidad, precio_unitario, subtotal) VALUES (?,?,?,?,?,?,?)',
+                    [$id, $l['producto_id'], $l['combo_id'], $l['desc'], $l['cant'], $l['precio'], number_format($l['sub'], 2, '.', '')]
                 );
-                Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $p['id']]);
+            }
+            // Un movimiento de stock por producto: es exactamente lo que se devuelve si luego se anula la venta.
+            foreach ($necesita as $pid => $cant) {
+                $nuevo = (int) $productos[$pid]['stock'] - $cant;
+                Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $pid]);
                 Database::run(
                     "INSERT INTO movimientos_stock (producto_id, usuario_id, tipo, cantidad, stock_resultante, motivo) VALUES (?,?,'venta',?,?,?)",
-                    [$p['id'], $usuarioId, $l['cant'], $nuevo, 'Venta ' . $codigo]
+                    [$pid, $usuarioId, $cant, $nuevo, 'Venta ' . $codigo]
                 );
             }
             $pdo->commit();
@@ -113,7 +149,7 @@ class Venta
         }
     }
 
-       public static function buscar(int $id): ?array
+    public static function buscar(int $id): ?array
     {
         return Database::one(
             'SELECT v.*, mp.nombre AS metodo, u.nombre AS cajero, m.numero AS mesa, s.cliente, ua.nombre AS anulada_por_nombre
@@ -130,7 +166,7 @@ class Venta
 
     public static function detalle(int $id): array
     {
-        return Database::all('SELECT descripcion, cantidad, precio_unitario, subtotal FROM detalle_venta WHERE venta_id = ? ORDER BY id', [$id]);
+        return Database::all('SELECT descripcion, cantidad, precio_unitario, subtotal, combo_id FROM detalle_venta WHERE venta_id = ? ORDER BY id', [$id]);
     }
 
     /** Pasa de "pagada" a "entregada". Falla si ya estaba entregada o anulada. */
@@ -139,7 +175,6 @@ class Venta
         $n = Database::run("UPDATE ventas SET estado = 'entregada', entregada_en = NOW() WHERE id = ? AND estado = 'pagada'", [$id]);
         if ($n === 0) throw new AppException('Este pedido ya fue entregado o está anulado.');
     }
-
 
     /**
      * ¿Se puede anular este pedido? Devuelve null si sí, o la razón (texto) si no.
@@ -155,7 +190,11 @@ class Venta
         return null;
     }
 
-    /** Anula el pedido y devuelve el stock, todo en una transacción. Lanza AppException si no se puede. */
+    /**
+     * Anula el pedido y devuelve el stock, todo en una transacción. Lanza AppException si no se puede.
+     * El stock que se devuelve sale de los movimientos que dejó la venta, así que es exactamente lo que se descontó
+     * (incluido lo que venía dentro de combos, aunque luego cambien).
+     */
     public static function anular(int $id, int $usuarioId, bool $esAdmin, string $motivo): void
     {
         $pdo = Database::pdo();
@@ -172,8 +211,11 @@ class Venta
             $razon = self::razonNoAnular($v, $turno, $usuarioId, $esAdmin);
             if ($razon !== null) throw new AppException($razon);
 
-            $lineas = Database::all('SELECT producto_id, cantidad FROM detalle_venta WHERE venta_id = ? AND producto_id IS NOT NULL ORDER BY producto_id', [$id]);
-            foreach ($lineas as $l) {
+            $descontado = Database::all(
+                "SELECT producto_id, SUM(cantidad) AS cantidad FROM movimientos_stock WHERE tipo = 'venta' AND motivo = ? GROUP BY producto_id ORDER BY producto_id",
+                ['Venta ' . $v['codigo']]
+            );
+            foreach ($descontado as $l) {
                 $p     = Database::one('SELECT stock FROM productos WHERE id = ? FOR UPDATE', [$l['producto_id']]);
                 $nuevo = (int) $p['stock'] + (int) $l['cantidad'];
                 Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $l['producto_id']]);
@@ -192,5 +234,4 @@ class Venta
             throw $e;
         }
     }
-
 }

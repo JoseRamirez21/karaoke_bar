@@ -1,63 +1,76 @@
 # Sistema Karaoke Bar
 
+Sistema de gestión para un bar karaoke: ventas, caja, mesas, reservas, combos, stock, karaoke y reportes.
 PHP (MVC con PDO) + MySQL + Bootstrap 5 + SweetAlert2. Pensado para XAMPP.
 
 ## Instalación (XAMPP)
-1. Copia la carpeta `karaoke_bar` dentro de `C:\xampp\htdocs\`.
+1. Copia la carpeta `karaoke_bar` dentro de `C:\xampp\htdocs\` (si ya tenías una versión anterior, **borra su contenido primero** y pega este: así no quedan archivos viejos. Guarda antes tu `app/config/config.php` si cambiaste la contraseña de MySQL).
 2. En el panel de XAMPP inicia **Apache** y **MySQL**.
-3. Abre `http://localhost/phpmyadmin` -> **Importar** -> elige `database/karaoke_bar.sql`.
-4. (Opcional, solo para ver el panel con datos) importa también `database/datos_demo.sql`.
-5. Entra a `http://localhost/karaoke_bar`
+3. En `http://localhost/phpmyadmin` > **Importar**, elige `database/karaoke_bar_completo.sql`.
+   Se puede importar más de una vez: no duplica nada ni borra tus datos.
+4. Abre `http://localhost/karaoke_bar` (y presiona `Ctrl + F5` para limpiar el caché del navegador).
 
-Si tu MySQL tiene contraseña o usuario distinto, cámbialo en `app/config/config.php`.
+Requisitos: PHP 8.1 o superior con las extensiones `pdo_mysql` y `mbstring` (XAMPP las trae; `pdo_mysql` a veces hay que activarla quitando el `;` en php.ini).
 
 ## Usuarios iniciales
-| Usuario | Contraseña   | Rol            |
-|---------|--------------|----------------|
-| admin   | Admin123*    | Administrador  |
-| cajero  | Cajero123    | Cajero (solo con datos_demo.sql) |
+| Usuario | Contraseña | Rol |
+|---------|------------|-----|
+| admin   | Admin123*  | Administrador |
+| cajero  | Cajero123  | Cajero (de ejemplo) |
 
-Cambia la contraseña del admin en **Mi perfil** apenas entres. Borra el usuario `cajero` de prueba antes de usar el sistema de verdad.
+Cambia la contraseña del admin en **Mi perfil**. Antes de usar el sistema de verdad, borra o desactiva el cajero de ejemplo y los productos, combos y mesas de ejemplo
+(o importa el SQL quitando la sección "9. DATOS DE EJEMPLO").
 
-## Módulos listos
-| Módulo | Quién | Qué hace |
-|--------|-------|----------|
-| Usuarios | admin | Crear cajeros/admins, editar, desactivar (no se borran), restablecer contraseña |
-| Categorías | admin | Cervezas, licores, piqueos... (no se desactiva una con productos activos) |
-| Productos | admin | Precio, stock mínimo, entradas/salidas/ajustes de stock con historial |
-| Salón y mesas | admin / cajero | Abrir mesa (activa su QR), ver su cuenta y cerrarla. El admin además crea/edita mesas y genera los QR |
-| Mi caja | admin / cajero | Abrir turno con fondo inicial, ver lo cobrado por método de pago y cerrar contando el efectivo (avisa si falta o sobra) |
+## Qué hace cada rol
+| | Administrador | Cajero |
+|---|---|---|
+| Vender, cobrar, entregar, anular sus pedidos | Sí (anula los de cualquiera) | Sí (anula los suyos) |
+| Abrir/cerrar mesas, ver cuentas | Sí | Sí |
+| Mi caja (abrir y cerrar turno) | Sí | Sí |
+| Reservas | Sí | Sí |
+| Cola de karaoke | Sí | Sí |
+| Productos, categorías, stock | Sí | No |
+| Combos y promociones | Sí | No |
+| Crear y manejar usuarios | Sí | No |
+| Reportes y descarga a Excel | Sí | No |
+| Bitácora (quién hizo qué) | Sí | No |
+| Configuración | Sí | No |
 
-## Qué falta (próximos pasos)
-Vender (carrito y cobro), entregar/anular pedidos, combos, reservas, la cola de karaoke con YouTube,
-reportes y bitácora. En el menú aparecen como "Pronto".
+## Los módulos
+- **Panel**: salón en vivo (mesas libres, ocupadas, reservadas), caja del día por método de pago, cola, reservas próximas, stock bajo y accesos rápidos.
+- **Vender**: productos y combos, mesa o mostrador, pago en Efectivo / Yape / Plin / Tarjeta, vuelto, ticket imprimible. Se cobra primero y se entrega después.
+  El stock se descuenta al cobrar. Protegido contra doble clic y contra dos cajeros vendiendo la misma última unidad.
+- **Anular**: pedidos cobrados y aún no entregados, con motivo; devuelve el stock exacto. No se anula lo entregado ni lo de un turno ya cerrado.
+- **Salón y mesas**: abrir mesa (cuenta), ver pedidos, cerrar mesa (no deja cerrar con pedidos sin entregar).
+- **Mi caja**: turno con fondo inicial, resumen por método de pago, cierre contando el efectivo (obliga a explicar si falta o sobra).
+- **Reservas**: fecha, hora, personas, adelanto; evita choques (2 horas por mesa); la mesa aparece "reservada" desde 1 hora antes; se abre la mesa desde la reserva.
+- **Cola de karaoke**: la manejan solo el admin y los cajeros. Anotan la canción que pide cada mesa; la fila se ordena para que las mesas se turnen
+  (máximo configurable por mesa). Botones: siguiente, terminó, saltar, quitar, primero.
+- **Productos / Categorías / Combos**: precios, stock mínimo, entradas/salidas/ajustes con historial, promociones con vigencia y ahorro.
+- **Reportes**: por día, método de pago, lo más vendido, horas pico, por cajero, cierres de caja con faltantes y sobrantes; descarga a Excel (CSV).
+  El "día" del bar empieza a las 6 a. m., así una noche que pasa de las 12 no se parte en dos.
+- **Bitácora**: registro de lo importante (ingresos, ventas, anulaciones, cambios de precio, ajustes de stock...), con filtros. No se puede borrar.
+- **Configuración**: nombre del local y canciones por mesa.
 
-## QR de las mesas (importante)
-Los QR apuntan a la dirección que guardes en **Salón y mesas > Imprimir QR**. Los celulares no pueden abrir
-`localhost`: usa la IP de la PC en el Wi-Fi del local (CMD > `ipconfig` > Dirección IPv4), por ejemplo
-`http://192.168.1.50/karaoke_bar`. Los clientes deben estar en ese mismo Wi-Fi, y el Firewall de Windows debe
-permitir a Apache (puerto 80) en redes privadas. La página de impresión carga la librería de QR por internet.
+## Seguridad incluida
+Contraseñas con `password_hash`, consultas preparadas (PDO), token CSRF en todos los formularios, cookies de sesión HttpOnly/SameSite,
+bloqueo tras 5 intentos fallidos de ingreso, cierre de sesión por inactividad, usuarios desactivados pierden el acceso al instante,
+carpeta `app/` inaccesible desde el navegador, textos escapados contra código malicioso, transacciones en todo lo que mueve dinero o stock.
+
+## Respaldo
+Todo está en la base de datos `karaoke_bar`. En phpMyAdmin: entra a la base > **Exportar** > Continuar. Guarda ese archivo `.sql` (ideal: cada día).
 
 ## Estructura
 ```
-app/
-  config/      config.php (BD, sesión), menu.php (menú por rol)
-  core/        Router, Database (PDO), Auth, Csrf, Session, Bitacora, helpers
-  controllers/ Auth, Dashboard, Perfil, Usuarios, Categorias, Productos, Mesas, Caja, Error
-  models/      Usuario, Categoria, Producto, Mesa, SesionMesa, Caja, Estadistica, Config
-  views/       layouts (main, auth), auth, dashboard, perfil, errors
-database/      karaoke_bar.sql, datos_demo.sql
-public/        index.php (único punto de entrada), assets/css, assets/js
+app/config/      config.php (base de datos, sesión), menu.php (menú por rol)
+app/core/        Router, Database (PDO), Auth, Csrf, Session, Bitacora, Validar, helpers
+app/controllers/ un controlador por módulo
+app/models/      consultas a la base de datos
+app/views/       pantallas (layouts, y una carpeta por módulo)
+database/        karaoke_bar_completo.sql
+public/          index.php (único punto de entrada), assets/css, assets/js
 ```
+Para agregar un módulo: crea el controlador (empieza con `$this->requireAuth([...])`), el modelo y la vista, y activa la opción en `app/config/menu.php`.
 
-## Cómo agregar un módulo nuevo
-1. `app/controllers/ProductosController.php` (extiende `Controller`; empieza con `$this->requireAuth(['admin']);`).
-2. `app/models/Producto.php` con consultas PDO preparadas.
-3. `app/views/productos/index.php`.
-4. En `app/config/menu.php` cambia `'ready' => false` a `true`.
-La URL `/productos/index` se enruta sola.
-
-## Seguridad incluida
-Contraseñas con `password_hash`, consultas preparadas, token CSRF en todos los POST, sesión con cookie HttpOnly/SameSite,
-bloqueo tras 5 intentos fallidos (5 min), cierre por inactividad (4 h), validación de usuario activo en cada petición,
-`app/` inaccesible desde el navegador y bitácora de accesos.
+## Antes de usarlo en producción
+En `app/config/config.php` cambia `APP_ENV` a `'production'` para ocultar los detalles de los errores.

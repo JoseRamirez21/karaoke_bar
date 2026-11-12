@@ -30,6 +30,7 @@ class VentasController extends Controller
             'title'      => 'Vender',
             'turno'      => $turno,
             'productos'  => $productos,
+            'combos'     => $turno ? Combo::vendibles() : [],
             'categorias' => $categorias,
             'mesas'      => $mesas,
             'metodos'    => Venta::metodos(),
@@ -55,17 +56,11 @@ class VentasController extends Controller
         unset($tokens[$k]);
         $_SESSION['venta_tokens'] = array_values($tokens);
 
-        // Productos: solo cuentan los que tienen cantidad entera mayor a 0
-        $items = [];
-        $raw   = $_POST['items'] ?? [];
-        if (is_array($raw)) {
-            foreach ($raw as $pid => $q) {
-                $q = Validar::entero((string) $q);
-                if ((int) $pid > 0 && $q !== null && $q > 0) $items[(int) $pid] = $q;
-            }
-        }
-        if (!$items)             $this->fallar($ruta, 'Agrega al menos un producto al pedido.');
-        if (count($items) > 60)  $this->fallar($ruta, 'El pedido tiene demasiados productos distintos. Sepáralo en dos.');
+        // Productos y combos: solo cuentan los que tienen cantidad entera mayor a 0
+        $items  = $this->cantidades($_POST['items'] ?? []);
+        $combos = $this->cantidades($_POST['combos'] ?? []);
+        if (!$items && !$combos)              $this->fallar($ruta, 'Agrega al menos un producto al pedido.');
+        if (count($items) + count($combos) > 60) $this->fallar($ruta, 'El pedido tiene demasiados productos distintos. Sepáralo en dos.');
 
         $recibido = null;
         if (post('recibido') !== '') {
@@ -74,7 +69,7 @@ class VentasController extends Controller
         }
 
         try {
-            $v = Venta::crear(Auth::id(), (int) $turno['id'], $sesionId > 0 ? $sesionId : null, (int) post('metodo_id'), $items, $recibido);
+            $v = Venta::crear(Auth::id(), (int) $turno['id'], $sesionId > 0 ? $sesionId : null, (int) post('metodo_id'), $items, $combos, $recibido);
         } catch (AppException $e) {
             $this->fallar($ruta, $e->getMessage());
         }
@@ -86,7 +81,7 @@ class VentasController extends Controller
         $this->listo('ventas/ticket/' . $v['id'], $msg);
     }
 
-       /** El ticket de una venta (se puede imprimir). */
+    /** El ticket de una venta (se puede imprimir). */
     public function ticket(string $id = '0'): void
     {
         $id = $this->idOr404($id);
@@ -123,7 +118,6 @@ class VentasController extends Controller
         $this->listo($volver, 'Pedido ' . $v['codigo'] . ' entregado.');
     }
 
-
     /** Anula un pedido cobrado que aún no se entregó: devuelve el stock y deja el motivo registrado. */
     public function anular(string $id = '0'): void
     {
@@ -145,4 +139,16 @@ class VentasController extends Controller
         $this->listo($ruta, 'Pedido ' . $v['codigo'] . ' anulado. Se devolvió el stock.');
     }
 
+    /** Convierte lo que manda el formulario (id => cantidad) en cantidades enteras válidas; descarta el resto. */
+    private function cantidades(mixed $raw): array
+    {
+        $r = [];
+        if (is_array($raw)) {
+            foreach ($raw as $id => $q) {
+                $q = Validar::entero((string) $q);
+                if ((int) $id > 0 && $q !== null && $q > 0) $r[(int) $id] = $q;
+            }
+        }
+        return $r;
+    }
 }

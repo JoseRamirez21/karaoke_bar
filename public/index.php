@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 if (PHP_VERSION_ID < 80100) {
     http_response_code(500);
-    exit('Este sistema necesita PHP 8.1 o superior. Tu versión es ' . PHP_VERSION . '. Abre /diagnostico.php para más detalles.');
+    exit('Este sistema necesita PHP 8.1 o superior. Tu versión es ' . PHP_VERSION . '.');
 }
 foreach (['pdo_mysql', 'mbstring'] as $ext) {
     if (!extension_loaded($ext)) {
         http_response_code(500);
-        exit("Falta la extensión de PHP \"$ext\". Actívala en php.ini y reinicia Apache. Abre /diagnostico.php para más detalles.");
+        exit("Falta la extensión de PHP \"$ext\". Actívala en php.ini y reinicia Apache.");
     }
 }
 

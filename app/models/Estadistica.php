@@ -15,7 +15,7 @@ class Estadistica
 
     public static function salon(): array
     {
-        return Database::all("SELECT id, numero, capacidad, estado FROM mesas WHERE estado <> 'inactiva' ORDER BY CAST(numero AS UNSIGNED), numero");
+        return Database::all("SELECT m.id, m.numero, m.capacidad, " . Mesa::SQL_ESTADO . " AS estado FROM mesas m WHERE m.estado <> 'inactiva' ORDER BY CAST(m.numero AS UNSIGNED), m.numero");
     }
 
     /** Ventas no anuladas desde $desde, o solo las de un turno si se indica. */

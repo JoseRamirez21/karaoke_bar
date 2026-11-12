@@ -4,11 +4,10 @@ $nombreEstado = ['libre' => 'Libre', 'ocupada' => 'Ocupada', 'reservada' => 'Res
 <header class="page-head page-head--actions">
   <div>
     <h1>Salón y mesas</h1>
-    <p><?= $esAdmin ? 'Las mesas del local y el código QR de cada una.' : 'El estado de las mesas del local.' ?></p>
+    <p><?= $esAdmin ? 'Las mesas del local: crea, edita y abre mesas.' : 'El estado de las mesas del local. Toca una mesa para abrirla o ver su cuenta.' ?></p>
   </div>
   <?php if ($esAdmin): ?>
     <div class="d-flex gap-2 flex-wrap">
-      <a class="btn btn-outline-field" href="<?= url('mesas/qr') ?>"><i class="bi bi-qr-code"></i> Imprimir QR</a>
       <a class="btn btn-brass" href="<?= url('mesas/crear') ?>"><i class="bi bi-plus-lg"></i> Nueva mesa</a>
     </div>
   <?php endif; ?>
@@ -45,12 +44,11 @@ $nombreEstado = ['libre' => 'Libre', 'ocupada' => 'Ocupada', 'reservada' => 'Res
             <td><?= (int) $m['capacidad'] ?> personas</td>
             <td><span class="badge-soft badge-soft--<?= ['libre' => 'ok', 'ocupada' => 'rose', 'reservada' => 'violet', 'inactiva' => 'off'][$m['estado']] ?? 'plain' ?>"><?= e($nombreEstado[$m['estado']] ?? $m['estado']) ?></span></td>
             <td class="text-end actions">
-              <a class="btn btn-sm btn-outline-field" href="<?= url('mesas/qr/' . (int) $m['id']) ?>"><i class="bi bi-qr-code"></i> QR</a>
               <a class="btn btn-sm btn-outline-field" href="<?= url('mesas/editar/' . (int) $m['id']) ?>"><i class="bi bi-pencil"></i> Editar</a>
               <?php if (in_array($m['estado'], ['libre', 'inactiva'], true)): ?>
               <form method="post" action="<?= url('mesas/estado/' . (int) $m['id']) ?>" class="d-inline"
                     data-confirm="<?= $m['estado'] === 'inactiva' ? '¿Activar la mesa ' . e($m['numero']) . '?' : '¿Desactivar la mesa ' . e($m['numero']) . '?' ?>"
-                    data-confirm-text="<?= $m['estado'] === 'inactiva' ? '' : 'Dejará de aparecer en el salón y su QR no funcionará.' ?>" data-confirm-button="Sí, continuar">
+                    data-confirm-text="<?= $m['estado'] === 'inactiva' ? '' : 'Dejará de aparecer en el salón.' ?>" data-confirm-button="Sí, continuar">
                 <?= csrf_field() ?>
                 <button class="btn btn-sm btn-outline-field" type="submit"><?= $m['estado'] === 'inactiva' ? 'Activar' : 'Desactivar' ?></button>
               </form>

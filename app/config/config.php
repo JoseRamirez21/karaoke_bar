@@ -15,7 +15,4 @@ const MAX_INTENTOS     = 5;               // intentos de login fallidos permitid
 const BLOQUEO_MINUTOS  = 5;               // ...dentro de esta ventana de minutos
 const DIA_INICIO_HORA  = 6;               // el "día" del negocio empieza a las 6 a. m. (el bar cierra de madrugada)
 
-// ---- YouTube: lee el título de un video a partir de su enlace (gratis, no necesita clave)
-const YOUTUBE_OEMBED = 'https://www.youtube.com/oembed';
-
 date_default_timezone_set('America/Lima');

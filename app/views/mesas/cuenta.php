@@ -18,7 +18,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
 <div class="row g-4">
   <div class="col-lg-7">
     <section class="panel h-100">
-            <div class="panel__head">
+      <div class="panel__head">
         <h2 class="panel__title">Pedidos</h2>
         <?php if ($abierta): ?><a class="btn btn-sm btn-brass" href="<?= url('ventas?sesion=' . (int) $s['id']) ?>"><i class="bi bi-plus-lg"></i> Agregar pedido</a><?php endif; ?>
       </div>
@@ -29,7 +29,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
         <p class="empty mb-0">Todavía no hay pedidos. Los pedidos que cobres para esta mesa aparecerán aquí.</p>
       <?php else: ?>
         <ul class="rows">
-                    <?php foreach ($ventas as $v): [$cls, $txt] = $estadoVenta[$v['estado']] ?? ['plain', $v['estado']]; ?>
+          <?php foreach ($ventas as $v): [$cls, $txt] = $estadoVenta[$v['estado']] ?? ['plain', $v['estado']]; ?>
             <li>
               <div>
                 <a href="<?= url('ventas/ticket/' . (int) $v['id']) ?>"><strong><?= e($v['codigo']) ?></strong></a>
@@ -43,7 +43,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
                     <?= csrf_field() ?>
                     <input type="hidden" name="volver" value="mesas/cuenta/<?= (int) $s['id'] ?>">
                     <button class="btn btn-sm btn-outline-brass" type="submit">Marcar entregado</button>
-                          <a class="btn btn-sm btn-outline-field" href="<?= url('ventas/ticket/' . (int) $v['id'] . '#anular') ?>">Anular</a>
+                    <a class="btn btn-sm btn-outline-field" href="<?= url('ventas/ticket/' . (int) $v['id'] . '#anular') ?>">Anular</a>
                   </form>
                 <?php endif; ?>
               </div>
@@ -58,8 +58,8 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
     <section class="panel mb-4">
       <h2 class="panel__title mb-3">Karaoke</h2>
       <ul class="rows">
-        <li><div><strong>Canciones pedidas</strong></div><strong><?= (int) $pedidas ?></strong></li>
-                <li><div><strong>En cola ahora</strong></div><strong><?= (int) $enCola ?></strong></li>
+        <li><div><strong>Canciones anotadas</strong></div><strong><?= (int) $pedidas ?></strong></li>
+        <li><div><strong>En cola ahora</strong></div><strong><?= (int) $enCola ?></strong></li>
       </ul>
       <?php if ($abierta): ?><a class="btn btn-sm btn-outline-field mt-3" href="<?= url('cola?sesion=' . (int) $s['id']) ?>"><i class="bi bi-music-note-list"></i> Agregar canción</a><?php endif; ?>
     </section>
@@ -67,13 +67,13 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
     <?php if ($abierta): ?>
     <section class="panel">
       <h2 class="panel__title mb-1">Cerrar mesa</h2>
-      <p class="text-secondary">Hazlo cuando los clientes se van. Se libera la mesa, su QR deja de funcionar y se quitan las canciones que aún no sonaron.</p>
+      <p class="text-secondary">Hazlo cuando los clientes se van. Se libera la mesa y se quitan las canciones que aún no cantaron.</p>
       <?php if ($resumen['por_entregar'] > 0): ?>
         <div class="notice notice--warn"><i class="bi bi-exclamation-triangle"></i><span><?= (int) $resumen['por_entregar'] ?> pedido<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> cobrado<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> sin entregar. Entrégalo<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> antes de cerrar.</span></div>
       <?php endif; ?>
       <form method="post" action="<?= url('mesas/cerrar/' . (int) $s['id']) ?>"
             data-confirm="¿Cerrar la mesa <?= e($s['mesa']) ?>?"
-            data-confirm-text="Consumo total: <?= e(money($resumen['total'])) ?>. Los clientes ya no podrán pedir música."
+            data-confirm-text="Consumo total: <?= e(money($resumen['total'])) ?>. Se quitarán sus canciones pendientes."
             data-confirm-button="Sí, cerrar mesa">
         <?= csrf_field() ?>
         <button class="btn btn-brass" type="submit">Cerrar mesa</button>

@@ -78,7 +78,7 @@ class SesionMesa
     }
 
     /**
-     * Cierra la cuenta: libera la mesa (y su QR) y quita las canciones que aún no sonaron.
+     * Cierra la cuenta: libera la mesa y quita las canciones que aún no cantaron.
      * No deja cerrar si hay pedidos cobrados sin entregar.
      * @return array{total: float, quitadas: int}
      */
@@ -97,7 +97,7 @@ class SesionMesa
             }
             Database::run("UPDATE sesiones_mesa SET estado = 'cerrada', cerrada_en = NOW(), cerrada_por = ? WHERE id = ?", [$usuarioId, $id]);
             Database::run("UPDATE mesas SET estado = 'libre' WHERE id = ?", [$s['mesa_id']]);
-            // La que está sonando ahora termina sola; solo se quitan las que esperaban turno.
+            // La que está cantando ahora no se toca; solo se quitan las que esperaban turno.
             $quitadas = Database::run("UPDATE cola_canciones SET estado = 'quitada' WHERE sesion_mesa_id = ? AND estado = 'pendiente'", [$id]);
             $pdo->commit();
             return ['total' => $r['total'], 'quitadas' => $quitadas];

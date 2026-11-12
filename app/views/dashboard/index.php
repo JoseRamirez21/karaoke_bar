@@ -18,6 +18,15 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
   </div>
 <?php endif; ?>
 
+<nav class="accesos" aria-label="Accesos rápidos">
+  <a class="btn btn-brass" href="<?= url('ventas') ?>"><i class="bi bi-receipt"></i> Vender</a>
+  <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-columns-gap"></i> Salón y mesas</a>
+  <a class="btn btn-outline-field" href="<?= url('cola') ?>"><i class="bi bi-mic"></i> Cola de karaoke</a>
+  <a class="btn btn-outline-field" href="<?= url('reservas') ?>"><i class="bi bi-calendar-check"></i> Reservas</a>
+  <a class="btn btn-outline-field" href="<?= url('caja') ?>"><i class="bi bi-cash-stack"></i> Mi caja</a>
+  <?php if ($esAdmin): ?><a class="btn btn-outline-field" href="<?= url('reportes') ?>"><i class="bi bi-bar-chart-line"></i> Reportes</a><?php endif; ?>
+</nav>
+
 <div class="row g-4 mb-4">
   <!-- SALÓN -->
   <div class="col-xl-8">
@@ -88,14 +97,14 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
         <?php if ($colaTotal): ?><span class="panel__meta"><?= $colaTotal ?> en cola</span><?php endif; ?>
       </div>
       <?php if (!$cola): ?>
-        <p class="empty">Nadie ha pedido canciones todavía. Las mesas abiertas piden música desde su QR.</p>
+        <p class="empty">Aún no hay canciones anotadas. Las anotas en Cola de karaoke.</p>
       <?php else: ?>
         <ol class="queue">
           <?php foreach ($cola as $c): ?>
             <li class="<?= $c['estado'] === 'reproduciendo' ? 'is-playing' : '' ?>">
               <span class="queue__mesa">Mesa <?= e($c['mesa']) ?></span>
               <span class="queue__title"><?= e($c['titulo']) ?></span>
-              <?php if ($c['estado'] === 'reproduciendo'): ?><span class="queue__now">Suena ahora</span><?php endif; ?>
+              <?php if ($c['estado'] === 'reproduciendo'): ?><span class="queue__now">Cantando ahora</span><?php endif; ?>
             </li>
           <?php endforeach; ?>
         </ol>

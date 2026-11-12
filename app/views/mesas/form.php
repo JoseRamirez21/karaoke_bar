@@ -2,7 +2,7 @@
 <header class="page-head page-head--actions">
   <div>
     <h1><?= $editar ? 'Editar mesa' : 'Nueva mesa' ?></h1>
-    <p><?= $editar ? 'Mesa ' . e($m['numero']) : 'Al crearla se genera su código QR automáticamente.' ?></p>
+    <p><?= $editar ? 'Mesa ' . e($m['numero']) : 'Cuántas personas caben y cómo la llamas en el salón.' ?></p>
   </div>
   <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-arrow-left"></i> Volver</a>
 </header>

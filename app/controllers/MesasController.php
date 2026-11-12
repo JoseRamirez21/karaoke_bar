@@ -83,52 +83,6 @@ class MesasController extends Controller
         $this->listo('mesas', 'Mesa desactivada.');
     }
 
-    /** Genera un QR nuevo (el impreso deja de funcionar). Útil si alguien lo fotografió o se perdió. */
-    public function token(string $id = '0'): void
-    {
-        $this->soloAdmin();
-        $this->requirePost();
-        $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
-
-        Mesa::regenerarToken($id);
-        Bitacora::log('qr_regenerado', 'mesas', $id, 'Mesa ' . $m['numero']);
-        $this->listo("mesas/qr/$id", 'QR nuevo generado. Imprímelo y reemplaza el anterior, que ya no funciona.');
-    }
-
-    /** Página para imprimir los QR (todos, o solo el de una mesa). */
-    public function qr(string $id = '0'): void
-    {
-        $this->soloAdmin();
-        if ($id !== '0') {
-            $id = $this->idOr404($id);
-            $m  = Mesa::buscar($id) ?? $this->noExiste();
-            $mesas = [$m];
-        } else {
-            $mesas = Mesa::todas(false);
-        }
-        $this->view('mesas/qr', [
-            'title'     => 'Códigos QR',
-            'mesas'     => $mesas,
-            'unaSola'   => $id !== '0',
-            'direccion' => Mesa::direccionPublica(),
-        ]);
-    }
-
-    public function direccion(): void
-    {
-        $this->soloAdmin();
-        $this->requirePost();
-        $dir = rtrim(post('direccion'), '/');
-        $p   = parse_url($dir);
-        if (!filter_var($dir, FILTER_VALIDATE_URL) || !in_array($p['scheme'] ?? '', ['http', 'https'], true) || mb_strlen($dir) > 200) {
-            $this->fallar('mesas/qr', 'Escribe una dirección válida, por ejemplo http://192.168.1.50/karaoke_bar');
-        }
-        Config::set('url_publica', $dir);
-        Bitacora::log('url_publica_cambiada', 'configuracion', null, $dir);
-        $this->listo('mesas/qr', 'Dirección guardada. Los QR ya la usan.');
-    }
-
     // ------------------------------------------------------------------
     // Operación del salón (admin y cajero)
     // ------------------------------------------------------------------
@@ -146,7 +100,15 @@ class MesasController extends Controller
         if ($s = SesionMesa::abierta($id)) {          // ya está abierta: vamos directo a su cuenta
             redirect('mesas/cuenta/' . (int) $s['id']);
         }
-        $this->view('mesas/abrir', ['title' => 'Abrir mesa ' . $m['numero'], 'm' => $m]);
+        // Si la mesa tiene una reserva cercana (o venimos desde la lista de reservas), se propone usarla
+        $reserva = null;
+        $rid = (int) ($_GET['reserva'] ?? 0);
+        if ($rid > 0) {
+            $r = Reserva::buscar($rid);
+            if ($r && (int) $r['mesa_id'] === $id && in_array($r['estado'], ['pendiente', 'confirmada'], true)) $reserva = $r;
+        }
+        $reserva ??= Reserva::paraMesaAhora($id);
+        $this->view('mesas/abrir', ['title' => 'Abrir mesa ' . $m['numero'], 'm' => $m, 'reserva' => $reserva]);
     }
 
     public function iniciar(string $id = '0'): void
@@ -163,6 +125,8 @@ class MesasController extends Controller
         } catch (AppException $e) {
             $this->fallar("mesas/abrir/$id", $e->getMessage());
         }
+        $rid = (int) post('reserva_id');
+        if ($rid > 0 && Reserva::cumplir($rid, $id)) Bitacora::log('reserva_cumplida', 'reservas', $rid, 'Mesa ' . $m['numero']);
         Bitacora::log('mesa_abierta', 'sesiones_mesa', $sid, 'Mesa ' . $m['numero'] . ($cliente !== '' ? ', ' . $cliente : ''));
         $this->listo('mesas/cuenta/' . $sid, 'Mesa ' . $m['numero'] . ' abierta.');
     }

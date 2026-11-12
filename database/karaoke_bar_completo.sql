@@ -11,7 +11,7 @@
 --    6. Auditoria y configuracion   (bitacora, configuracion)
 --    7. Vistas                      (v_stock_bajo, v_cola, v_resumen_turno)
 --    8. Datos iniciales             (roles, metodos de pago, usuario admin, categorias, ajustes)
---    9. DATOS DE EJEMPLO (opcional) (mesas, productos, una reserva y un cajero de prueba)
+--    9. DATOS DE EJEMPLO (opcional) (mesas, productos, combos, una reserva y un cajero de prueba)
 --
 --  USUARIOS:   admin  /  Admin123*        (cambiar al primer ingreso)
 --              cajero /  Cajero123        (solo de ejemplo: borrarlo antes de usar de verdad)
@@ -25,6 +25,7 @@
 -- =====================================================================
 
 SET NAMES utf8mb4;
+SET time_zone = '-05:00';   -- hora de Perú, la misma que usa el sistema (así la reserva de ejemplo cae a la hora correcta)
 
 CREATE DATABASE IF NOT EXISTS karaoke_bar
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -324,13 +325,13 @@ INSERT IGNORE INTO configuracion (clave, valor, descripcion) VALUES
 INSERT IGNORE INTO usuarios (rol_id, nombre, usuario, password) VALUES
   (2, 'Rosa Huaman', 'cajero', '$2y$10$wYzjSA3eBpD1QeSWi2QN1u9VWgH.rT1Usg3PFZF3BBohSVG6X.NKm');
 
--- 8 mesas (la 5 queda reservada para la reserva de ejemplo)
+-- 8 mesas
 INSERT IGNORE INTO mesas (numero, capacidad, estado, qr_token) VALUES
   ('1', 4,  'libre',     MD5(UUID())),
   ('2', 4,  'libre',     MD5(UUID())),
   ('3', 6,  'libre',     MD5(UUID())),
   ('4', 6,  'libre',     MD5(UUID())),
-  ('5', 4,  'reservada', MD5(UUID())),
+  ('5', 4,  'libre',     MD5(UUID())),
   ('6', 8,  'libre',     MD5(UUID())),
   ('7', 4,  'libre',     MD5(UUID())),
   ('8', 10, 'libre',     MD5(UUID()));
@@ -350,9 +351,24 @@ SELECT c.id, d.nombre, d.precio, d.stock, d.minimo
   JOIN categorias c ON c.nombre = d.cat
  WHERE NOT EXISTS (SELECT 1 FROM productos p WHERE p.nombre = d.nombre);
 
--- Una reserva de ejemplo para dentro de 3 horas
+-- Una reserva de ejemplo para dentro de 2 horas (la mesa 5 aparece "reservada" en el salón)
 INSERT INTO reservas (mesa_id, usuario_id, cliente, telefono, personas, fecha_hora, estado)
-SELECT m.id, u.id, 'Carla Quispe', '999111222', 6, NOW() + INTERVAL 3 HOUR, 'confirmada'
+SELECT m.id, u.id, 'Carla Quispe', '999111222', 6, NOW() + INTERVAL 2 HOUR, 'confirmada'
   FROM mesas m JOIN usuarios u ON u.usuario = 'admin'
  WHERE m.numero = '5'
    AND NOT EXISTS (SELECT 1 FROM reservas r WHERE r.cliente = 'Carla Quispe');
+
+-- Dos combos de ejemplo
+INSERT INTO combos (nombre, descripcion, precio, estado)
+SELECT 'Promo 6 cervezas', '6 cervezas de 620 ml a precio especial', 60.00, 1 FROM DUAL
+ WHERE NOT EXISTS (SELECT 1 FROM combos WHERE nombre = 'Promo 6 cervezas');
+INSERT INTO combos (nombre, descripcion, precio, estado)
+SELECT 'Botella + piqueo', 'Pisco de 750 ml con un piqueo mixto', 85.00, 1 FROM DUAL
+ WHERE NOT EXISTS (SELECT 1 FROM combos WHERE nombre = 'Botella + piqueo');
+
+INSERT INTO combo_productos (combo_id, producto_id, cantidad)
+SELECT c.id, p.id, 6 FROM combos c JOIN productos p ON p.nombre = 'Cerveza 620 ml'
+ WHERE c.nombre = 'Promo 6 cervezas' AND NOT EXISTS (SELECT 1 FROM combo_productos x WHERE x.combo_id = c.id AND x.producto_id = p.id);
+INSERT INTO combo_productos (combo_id, producto_id, cantidad)
+SELECT c.id, p.id, 1 FROM combos c JOIN productos p ON p.nombre IN ('Pisco 750 ml', 'Piqueo mixto')
+ WHERE c.nombre = 'Botella + piqueo' AND NOT EXISTS (SELECT 1 FROM combo_productos x WHERE x.combo_id = c.id AND x.producto_id = p.id);
