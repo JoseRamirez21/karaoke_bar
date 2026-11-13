@@ -3,7 +3,7 @@ class CajaController extends Controller
 {
     public function __construct()
     {
-        $this->requireAuth();   // admin y cajero
+        $this->requireAuth();
     }
 
     public function index(): void
@@ -29,7 +29,6 @@ class CajaController extends Controller
         } catch (AppException $e) {
             $this->fallar('caja', $e->getMessage());
         }
-        Bitacora::log('turno_abierto', 'turnos_caja', $id, 'Fondo inicial: ' . money($monto));
         $this->listo('caja', 'Turno abierto. ¡Buena jornada!');
     }
 
@@ -49,8 +48,6 @@ class CajaController extends Controller
         }
 
         $dif = $r['diferencia'];
-        Bitacora::log('turno_cerrado', 'turnos_caja', (int) $turno['id'],
-            'Esperado ' . money($r['esperado']) . ', contado ' . money($contado) . ', diferencia ' . money($dif));
 
         $texto = abs($dif) < 0.005 ? 'La caja cuadra perfecto.'
                : ($dif < 0 ? 'Faltan ' . money(abs($dif)) . '.' : 'Sobran ' . money($dif) . '.');

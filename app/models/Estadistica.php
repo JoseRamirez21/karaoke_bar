@@ -13,9 +13,9 @@ class Estadistica
         return Database::one("SELECT * FROM turnos_caja WHERE usuario_id = ? AND estado = 'abierto' ORDER BY id DESC LIMIT 1", [$usuarioId]);
     }
 
-    public static function salon(): array
+    public static function mesas(): array
     {
-        return Database::all("SELECT m.id, m.numero, m.capacidad, " . Mesa::SQL_ESTADO . " AS estado FROM mesas m WHERE m.estado <> 'inactiva' ORDER BY CAST(m.numero AS UNSIGNED), m.numero");
+        return Database::all("SELECT m.id, m.numero, m.capacidad, m.estado FROM mesas m WHERE m.estado <> 'inactiva' ORDER BY CAST(m.numero AS UNSIGNED), m.numero");
     }
 
     /** Ventas no anuladas desde $desde, o solo las de un turno si se indica. */
@@ -37,17 +37,6 @@ class Estadistica
         return ['total' => $total, 'n' => $n, 'metodos' => $metodos];
     }
 
-    public static function cola(int $limite = 6): array
-    {
-        $limite = max(1, $limite);
-        return Database::all("SELECT mesa, titulo, estado FROM v_cola LIMIT $limite");
-    }
-
-    public static function colaTotal(): int
-    {
-        return (int) Database::value("SELECT COUNT(*) FROM cola_canciones WHERE estado IN ('pendiente','reproduciendo')");
-    }
-
     public static function stockBajo(int $limite = 6): array
     {
         $limite = max(1, $limite);
@@ -59,15 +48,4 @@ class Estadistica
         return (int) Database::value('SELECT COUNT(*) FROM v_stock_bajo');
     }
 
-    public static function reservasProximas(int $limite = 5): array
-    {
-        $limite = max(1, $limite);
-        return Database::all(
-            "SELECT r.cliente, r.personas, r.fecha_hora, r.estado, m.numero AS mesa
-               FROM reservas r JOIN mesas m ON m.id = r.mesa_id
-              WHERE r.estado IN ('pendiente','confirmada')
-                AND r.fecha_hora BETWEEN (NOW() - INTERVAL 2 HOUR) AND (NOW() + INTERVAL 24 HOUR)
-              ORDER BY r.fecha_hora LIMIT $limite"
-        );
-    }
 }

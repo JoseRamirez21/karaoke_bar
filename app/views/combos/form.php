@@ -7,7 +7,6 @@ $enVenta = $editar ? (int) $c['estado'] === 1 : (empty($old) || isset($old['esta
 <header class="page-head page-head--actions">
   <div>
     <h1><?= $editar ? 'Editar combo' : 'Nuevo combo' ?></h1>
-    <p>Elige los productos que incluye (pon la cantidad de cada uno) y el precio especial.</p>
   </div>
   <a class="btn btn-outline-field" href="<?= url('combos') ?>"><i class="bi bi-arrow-left"></i> Volver</a>
 </header>
@@ -20,7 +19,7 @@ $enVenta = $editar ? (int) $c['estado'] === 1 : (empty($old) || isset($old['esta
         <h2 class="panel__title mb-3">Datos</h2>
         <div class="mb-3">
           <label class="form-label" for="nombre">Nombre</label>
-          <input class="form-control" id="nombre" name="nombre" maxlength="120" required value="<?= old('nombre', $c['nombre'] ?? '') ?>" placeholder="Ej.: Promo 6 cervezas">
+          <input class="form-control" id="nombre" name="nombre" maxlength="120" required value="<?= old('nombre', $c['nombre'] ?? '') ?>">
         </div>
         <div class="mb-3">
           <label class="form-label" for="descripcion">Descripción <small>(opcional)</small></label>
@@ -68,7 +67,7 @@ $enVenta = $editar ? (int) $c['estado'] === 1 : (empty($old) || isset($old['esta
             </tbody>
           </table>
         </div>
-        <?php if (!$productos): ?><p class="empty m-4">Primero crea productos.</p><?php endif; ?>
+        <?php if (!$productos): ?><p class="empty m-4">No hay productos disponibles.</p><?php endif; ?>
         <p class="empty m-4" id="sinResultados" hidden>Ningún producto coincide con la búsqueda.</p>
       </section>
     </div>

@@ -25,8 +25,8 @@ $turno   = $t;   // la parte común (_resumen.php) espera la variable $turno
         <p class="empty mb-0">Este turno todavía está abierto.</p>
       <?php else: ?>
         <ul class="rows">
-          <li><div><strong>Esperado</strong><span>Lo que el sistema calculó</span></div><strong><?= e(money($t['efectivo_esperado'])) ?></strong></li>
-          <li><div><strong>Contado</strong><span>Lo que el cajero contó</span></div><strong><?= e(money($t['efectivo_contado'])) ?></strong></li>
+          <li><div><strong>Esperado</strong></div><strong><?= e(money($t['efectivo_esperado'])) ?></strong></li>
+          <li><div><strong>Contado</strong></div><strong><?= e(money($t['efectivo_contado'])) ?></strong></li>
           <li><div><strong>Resultado</strong></div>
             <?php if (abs($dif) < 0.005): ?><span class="badge-soft badge-soft--ok">La caja cuadra</span>
             <?php else: ?><span class="badge-soft badge-soft--<?= $dif < 0 ? 'danger' : 'brass' ?>"><?= $dif < 0 ? 'Faltan ' : 'Sobran ' ?><?= e(money(abs($dif))) ?></span><?php endif; ?>

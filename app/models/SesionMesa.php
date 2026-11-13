@@ -70,18 +70,7 @@ class SesionMesa
         return ['total' => (float) $r['total'], 'n' => (int) $r['n'], 'por_entregar' => (int) $r['por_entregar']];
     }
 
-    /** Canciones de la mesa agrupadas por estado, ej. ['pendiente' => 2, 'reproducida' => 1]. */
-    public static function canciones(int $sesionId): array
-    {
-        $filas = Database::all('SELECT estado, COUNT(*) AS n FROM cola_canciones WHERE sesion_mesa_id = ? GROUP BY estado', [$sesionId]);
-        return array_map('intval', array_column($filas, 'n', 'estado'));
-    }
-
-    /**
-     * Cierra la cuenta: libera la mesa y quita las canciones que aún no cantaron.
-     * No deja cerrar si hay pedidos cobrados sin entregar.
-     * @return array{total: float, quitadas: int}
-     */
+    /** Cierra la cuenta y libera la mesa. No deja cerrar si hay pedidos cobrados sin entregar. */
     public static function cerrar(int $id, int $usuarioId): array
     {
         $pdo = Database::pdo();
@@ -97,10 +86,8 @@ class SesionMesa
             }
             Database::run("UPDATE sesiones_mesa SET estado = 'cerrada', cerrada_en = NOW(), cerrada_por = ? WHERE id = ?", [$usuarioId, $id]);
             Database::run("UPDATE mesas SET estado = 'libre' WHERE id = ?", [$s['mesa_id']]);
-            // La que está cantando ahora no se toca; solo se quitan las que esperaban turno.
-            $quitadas = Database::run("UPDATE cola_canciones SET estado = 'quitada' WHERE sesion_mesa_id = ? AND estado = 'pendiente'", [$id]);
             $pdo->commit();
-            return ['total' => $r['total'], 'quitadas' => $quitadas];
+            return ['total' => $r['total']];
         } catch (Throwable $e) {
             $pdo->rollBack();
             throw $e;

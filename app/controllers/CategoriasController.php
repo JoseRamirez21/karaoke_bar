@@ -19,7 +19,6 @@ class CategoriasController extends Controller
         if ($err) $this->fallar('categorias', $err);
 
         $id = Categoria::crear($nombre);
-        Bitacora::log('categoria_creada', 'categorias', $id, $nombre);
         $this->listo('categorias', 'Categoría creada.');
     }
 
@@ -34,7 +33,6 @@ class CategoriasController extends Controller
         if ($err) $this->fallar('categorias', $err);
 
         Categoria::renombrar($id, $nombre);
-        Bitacora::log('categoria_editada', 'categorias', $id, $c['nombre'] . ' → ' . $nombre);
         $this->listo('categorias', 'Categoría actualizada.');
     }
 
@@ -53,7 +51,6 @@ class CategoriasController extends Controller
         }
         $nuevo = (int) $c['estado'] === 1 ? 0 : 1;
         Categoria::setEstado($id, $nuevo);
-        Bitacora::log($nuevo ? 'categoria_activada' : 'categoria_desactivada', 'categorias', $id, $c['nombre']);
         $this->listo('categorias', $nuevo ? 'Categoría activada.' : 'Categoría desactivada.');
     }
 

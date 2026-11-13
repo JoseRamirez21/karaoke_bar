@@ -7,7 +7,6 @@ $accion   = $editar ? 'usuarios/actualizar/' . (int) $u['id'] : 'usuarios/guarda
 <header class="page-head page-head--actions">
   <div>
     <h1><?= $editar ? 'Editar usuario' : 'Nuevo usuario' ?></h1>
-    <p><?= $editar ? e($u['nombre']) : 'Crea la cuenta de un trabajador. Tú le entregas el usuario y la contraseña.' ?></p>
   </div>
   <a class="btn btn-outline-field" href="<?= url('usuarios') ?>"><i class="bi bi-arrow-left"></i> Volver</a>
 </header>
@@ -26,7 +25,6 @@ $accion   = $editar ? 'usuarios/actualizar/' . (int) $u['id'] : 'usuarios/guarda
           <div class="col-md-6">
             <label class="form-label" for="usuario">Usuario para ingresar</label>
             <input class="form-control" id="usuario" name="usuario" maxlength="30" required autocapitalize="off" value="<?= old('usuario', $u['usuario'] ?? '') ?>">
-            <div class="form-hint mb-0 mt-1">Sin espacios, por ejemplo: rosa.h</div>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="telefono">Teléfono (opcional)</label>
@@ -39,7 +37,6 @@ $accion   = $editar ? 'usuarios/actualizar/' . (int) $u['id'] : 'usuarios/guarda
                 <option value="<?= (int) $r['id'] ?>"<?= sel($rolActual, $r['id']) ?>><?= $r['nombre'] === 'admin' ? 'Administrador' : 'Cajero' ?></option>
               <?php endforeach; ?>
             </select>
-            <?php if ($yo): ?><div class="form-hint mb-0 mt-1">No puedes cambiar tu propio rol.</div><?php endif; ?>
           </div>
           <?php if (!$editar): ?>
             <div class="col-md-6">
@@ -48,7 +45,6 @@ $accion   = $editar ? 'usuarios/actualizar/' . (int) $u['id'] : 'usuarios/guarda
                 <input type="password" class="form-control" id="password" name="password" minlength="8" required autocomplete="new-password">
                 <button class="btn btn-outline-field" type="button" data-toggle-password="#password" aria-label="Mostrar u ocultar"><i class="bi bi-eye"></i></button>
               </div>
-              <div class="form-hint mb-0 mt-1">Mínimo 8, con letra y número.</div>
             </div>
           <?php endif; ?>
         </div>
@@ -65,7 +61,6 @@ $accion   = $editar ? 'usuarios/actualizar/' . (int) $u['id'] : 'usuarios/guarda
   <div class="col-lg-5">
     <section class="panel">
       <h2 class="panel__title mb-1">Restablecer contraseña</h2>
-      <p class="text-secondary">Úsalo si el trabajador la olvidó. Entrégale la nueva en persona.</p>
       <form method="post" action="<?= url('usuarios/password/' . (int) $u['id']) ?>" autocomplete="off"
             data-confirm="¿Restablecer la contraseña?" data-confirm-text="La contraseña anterior dejará de funcionar." data-confirm-button="Sí, restablecer">
         <?= csrf_field() ?>

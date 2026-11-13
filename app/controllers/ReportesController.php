@@ -28,7 +28,6 @@ class ReportesController extends Controller
             'metodos'  => Reporte::porMetodo($ini, $fin),
             'top'      => Reporte::topProductos($ini, $fin),
             'cajeros'  => Reporte::porCajero($ini, $fin),
-            'horas'    => Reporte::porHora($ini, $fin),
             'turnos'   => $turnos,
             'falta'    => $falta, 'sobra' => $sobra,
         ]);
@@ -40,7 +39,6 @@ class ReportesController extends Controller
         [$desde, $hasta] = $this->fechas();
         [$ini, $fin]     = Reporte::rango($desde, $hasta);
         $filas = Reporte::ventasDetalle($ini, $fin);
-        Bitacora::log('reporte_exportado', 'ventas', null, "$desde a $hasta, " . count($filas) . ' ventas');
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="ventas_' . $desde . '_a_' . $hasta . '.csv"');
@@ -57,7 +55,6 @@ class ReportesController extends Controller
         exit;
     }
 
-    // ------------------------------------------------------------------
     /** Evita que Excel ejecute como fórmula un texto que empiece con = + - @ */
     private function seguro(string $t): string
     {

@@ -1,8 +1,6 @@
 <?php
 $abierta     = $s['estado'] === 'abierta';
 $estadoVenta = ['pagada' => ['brass', 'Por entregar'], 'entregada' => ['ok', 'Entregada'], 'anulada' => ['danger', 'Anulada']];
-$pedidas     = array_sum($canciones);
-$enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 0);
 ?>
 <header class="page-head page-head--actions">
   <div>
@@ -12,7 +10,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
       <?php if (!$abierta): ?>Cerrada el <?= e(fecha_corta($s['cerrada_en'])) ?> por <?= e($s['cerrada_por_nombre']) ?>.<?php endif; ?>
     </p>
   </div>
-  <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-arrow-left"></i> Salón</a>
+  <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-arrow-left"></i> Mesas</a>
 </header>
 
 <div class="row g-4">
@@ -26,7 +24,7 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
       <p class="text-secondary mb-4">Consumido en <?= (int) $resumen['n'] ?> pedido<?= $resumen['n'] === 1 ? '' : 's' ?></p>
 
       <?php if (!$ventas): ?>
-        <p class="empty mb-0">Todavía no hay pedidos. Los pedidos que cobres para esta mesa aparecerán aquí.</p>
+        <p class="empty mb-0">Todavía no hay pedidos.</p>
       <?php else: ?>
         <ul class="rows">
           <?php foreach ($ventas as $v): [$cls, $txt] = $estadoVenta[$v['estado']] ?? ['plain', $v['estado']]; ?>
@@ -54,31 +52,21 @@ $enCola      = ($canciones['pendiente'] ?? 0) + ($canciones['reproduciendo'] ?? 
     </section>
   </div>
 
+  <?php if ($abierta): ?>
   <div class="col-lg-5">
-    <section class="panel mb-4">
-      <h2 class="panel__title mb-3">Karaoke</h2>
-      <ul class="rows">
-        <li><div><strong>Canciones anotadas</strong></div><strong><?= (int) $pedidas ?></strong></li>
-        <li><div><strong>En cola ahora</strong></div><strong><?= (int) $enCola ?></strong></li>
-      </ul>
-      <?php if ($abierta): ?><a class="btn btn-sm btn-outline-field mt-3" href="<?= url('cola?sesion=' . (int) $s['id']) ?>"><i class="bi bi-music-note-list"></i> Agregar canción</a><?php endif; ?>
-    </section>
-
-    <?php if ($abierta): ?>
     <section class="panel">
       <h2 class="panel__title mb-1">Cerrar mesa</h2>
-      <p class="text-secondary">Hazlo cuando los clientes se van. Se libera la mesa y se quitan las canciones que aún no cantaron.</p>
       <?php if ($resumen['por_entregar'] > 0): ?>
         <div class="notice notice--warn"><i class="bi bi-exclamation-triangle"></i><span><?= (int) $resumen['por_entregar'] ?> pedido<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> cobrado<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> sin entregar. Entrégalo<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> antes de cerrar.</span></div>
       <?php endif; ?>
       <form method="post" action="<?= url('mesas/cerrar/' . (int) $s['id']) ?>"
             data-confirm="¿Cerrar la mesa <?= e($s['mesa']) ?>?"
-            data-confirm-text="Consumo total: <?= e(money($resumen['total'])) ?>. Se quitarán sus canciones pendientes."
+            data-confirm-text="Consumo total: <?= e(money($resumen['total'])) ?>."
             data-confirm-button="Sí, cerrar mesa">
         <?= csrf_field() ?>
         <button class="btn btn-brass" type="submit">Cerrar mesa</button>
       </form>
     </section>
-    <?php endif; ?>
   </div>
+  <?php endif; ?>
 </div>

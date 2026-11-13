@@ -1,7 +1,7 @@
 <?php
 $menu  = require APP_PATH . '/config/menu.php';
 $user  = Auth::user();
-$local = Config::get('nombre_local', 'Karaoke Bar');
+$local = Config::get('nombre_local', 'Karaoke Club');
 $inicial = mb_strtoupper(mb_substr($user['nombre'] ?? '?', 0, 1));
 ?>
 <!doctype html>
@@ -17,32 +17,25 @@ $inicial = mb_strtoupper(mb_substr($user['nombre'] ?? '?', 0, 1));
   <button class="btn btn-icon" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Abrir menú">
     <i class="bi bi-list fs-3"></i>
   </button>
-  <span class="brand-name"><?= e($local) ?></span>
+  <img class="brand-logo brand-logo--mobile" src="<?= asset('assets/logo.png') ?>" alt="<?= e($local) ?>">
 </header>
 
 <div class="shell">
   <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar" aria-label="Menú principal">
     <div class="sidebar__brand">
-      <span class="brand-mark"><i class="bi bi-mic-fill"></i></span>
-      <span class="brand-name"><?= e($local) ?></span>
+      <img class="brand-logo brand-logo--sidebar" src="<?= asset('assets/logo.png') ?>" alt="<?= e($local) ?>">
     </div>
 
     <nav class="sidebar__nav">
       <?php foreach ($menu as $grupo):
           $items = array_filter($grupo['items'], fn($i) => in_array(Auth::role(), $i['roles'], true));
           if (!$items) continue; ?>
-        <p class="nav-group"><?= e($grupo['grupo']) ?></p>
+        <?php if ($grupo['grupo'] !== ''): ?><p class="nav-group"><?= e($grupo['grupo']) ?></p><?php endif; ?>
         <?php foreach ($items as $i):
             $activo = Router::$controller === $i['route']; ?>
-          <?php if ($i['ready']): ?>
-            <a class="nav-item-link<?= $activo ? ' is-active' : '' ?>" href="<?= url($i['route']) ?>"<?= $activo ? ' aria-current="page"' : '' ?>>
-              <i class="bi <?= e($i['icon']) ?>"></i><span><?= e($i['label']) ?></span>
-            </a>
-          <?php else: ?>
-            <span class="nav-item-link is-soon" aria-disabled="true">
-              <i class="bi <?= e($i['icon']) ?>"></i><span><?= e($i['label']) ?></span><small>Pronto</small>
-            </span>
-          <?php endif; ?>
+          <a class="nav-item-link<?= $activo ? ' is-active' : '' ?>" href="<?= url($i['route']) ?>"<?= $activo ? ' aria-current="page"' : '' ?>>
+            <i class="bi <?= e($i['icon']) ?>"></i><span><?= e($i['label']) ?></span>
+          </a>
         <?php endforeach; ?>
       <?php endforeach; ?>
     </nav>

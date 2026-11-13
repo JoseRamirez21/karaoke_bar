@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= e($title ?? 'Ingresar') ?> | <?= e(Config::get('nombre_local', 'Karaoke Bar')) ?></title>
+  <title><?= e($title ?? 'Ingresar') ?> | <?= e(Config::get('nombre_local', 'Karaoke Club')) ?></title>
   <?php include APP_PATH . '/views/layouts/_head.php'; ?>
 </head>
 <body class="auth-body">

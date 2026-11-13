@@ -1,7 +1,7 @@
 <?php $esAdmin = Auth::is('admin'); ?>
 <header class="page-head">
   <h1>Mi caja</h1>
-  <p><?= $turno ? 'Turno abierto desde las ' . e(hora12($turno['abierto_en'])) . '.' : 'Abre tu turno para empezar a cobrar.' ?></p>
+  <?php if ($turno): ?><p>Turno abierto desde las <?= e(hora12($turno['abierto_en'])) ?>.</p><?php endif; ?>
 </header>
 
 <?php if (!$turno): ?>
@@ -9,7 +9,6 @@
     <div class="col-lg-6">
       <section class="panel">
         <h2 class="panel__title mb-1">Abrir turno</h2>
-        <p class="text-secondary">Escribe cuánto efectivo hay en la caja al empezar, para dar vuelto. Puede ser 0.</p>
         <form method="post" action="<?= url('caja/abrir') ?>" autocomplete="off">
           <?= csrf_field() ?>
           <label class="form-label" for="monto_inicial">Efectivo inicial (S/)</label>
@@ -30,14 +29,13 @@
     <div class="col-lg-5">
       <section class="panel h-100">
         <h2 class="panel__title mb-1">Cerrar turno</h2>
-        <p class="text-secondary">Cuenta el efectivo que hay en la caja y escríbelo. El sistema lo compara con lo esperado.</p>
         <form method="post" action="<?= url('caja/cerrar') ?>" autocomplete="off"
               data-confirm="¿Cerrar tu turno?" data-confirm-text="Ya no podrás cobrar hasta abrir un turno nuevo." data-confirm-button="Sí, cerrar turno">
           <?= csrf_field() ?>
           <label class="form-label" for="efectivo_contado">Efectivo contado (S/)</label>
           <input class="form-control mb-3" id="efectivo_contado" name="efectivo_contado" inputmode="decimal" required value="<?= old('efectivo_contado') ?>">
-          <label class="form-label" for="observacion">Observación <small>(obligatoria si hay diferencia)</small></label>
-          <input class="form-control mb-3" id="observacion" name="observacion" maxlength="255" value="<?= old('observacion') ?>" placeholder="Ej.: vuelto mal dado en la mesa 4">
+          <label class="form-label" for="observacion">Observación</label>
+          <input class="form-control mb-3" id="observacion" name="observacion" maxlength="255" value="<?= old('observacion') ?>">
           <button class="btn btn-brass" type="submit">Cerrar turno</button>
         </form>
       </section>

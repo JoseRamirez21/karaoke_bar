@@ -5,33 +5,38 @@
 --  CONTENIDO
 --    1. Roles y usuarios            (roles, usuarios)
 --    2. Productos, stock y combos   (categorias, productos, movimientos_stock, combos, combo_productos)
---    3. Mesas, cuentas y reservas   (mesas, sesiones_mesa, reservas)
+--    3. Mesas y cuentas              (mesas, sesiones_mesa)
 --    4. Caja, ventas y pagos        (metodos_pago, turnos_caja, ventas, detalle_venta)
---    5. Karaoke                     (cola_canciones)
---    6. Auditoria y configuracion   (bitacora, configuracion)
---    7. Vistas                      (v_stock_bajo, v_cola, v_resumen_turno)
---    8. Datos iniciales             (roles, metodos de pago, usuario admin, categorias, ajustes)
---    9. DATOS DE EJEMPLO (opcional) (mesas, productos, combos, una reserva y un cajero de prueba)
+--    5. Configuracion (configuracion)
+--    6. Vistas                      (v_stock_bajo, v_resumen_turno)
+--    7. Datos iniciales             (roles, metodos de pago, usuario admin, categorias, ajustes)
+--    8. DATOS DE EJEMPLO (opcional) (mesas, productos, combos y un cajero de prueba)
 --
 --  USUARIOS:   admin  /  Admin123*        (cambiar al primer ingreso)
 --              cajero /  Cajero123        (solo de ejemplo: borrarlo antes de usar de verdad)
 --
 --  SE PUEDE IMPORTAR MAS DE UNA VEZ: no da error ni duplica los datos.
---  Para EMPEZAR DE CERO borra primero la base "karaoke_bar" en phpMyAdmin
+--  Para EMPEZAR DE CERO borra primero la base "karaoke_club" en phpMyAdmin
 --  (pestana Operaciones > Eliminar la base de datos) y vuelve a importar.
 --
 --  Si NO quieres los datos de ejemplo, borra todo desde la linea
---  "9. DATOS DE EJEMPLO" hasta el final del archivo antes de importar.
+--  "8. DATOS DE EJEMPLO" hasta el final del archivo antes de importar.
 -- =====================================================================
 
 SET NAMES utf8mb4;
-SET time_zone = '-05:00';   -- hora de Perú, la misma que usa el sistema (así la reserva de ejemplo cae a la hora correcta)
+SET time_zone = '-05:00';   -- hora local del sistema
 
-CREATE DATABASE IF NOT EXISTS karaoke_bar
+CREATE DATABASE IF NOT EXISTS karaoke_club
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE karaoke_bar;
+USE karaoke_club;
 
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- Elimina objetos retirados del esquema.
+DROP VIEW IF EXISTS v_cola;
+DROP TABLE IF EXISTS cola_canciones;
+DROP TABLE IF EXISTS bitacora;
+DROP TABLE IF EXISTS reservas;
 
 -- ---------------------------------------------------------------------
 -- 1. ROLES Y USUARIOS
@@ -111,18 +116,27 @@ CREATE TABLE IF NOT EXISTS combo_productos (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- 3. MESAS, SESIONES (cuenta de la mesa) Y RESERVAS
+-- 3. MESAS Y SESIONES (cuenta de la mesa)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS mesas (
   id         INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   numero     VARCHAR(20) NOT NULL UNIQUE,
   capacidad  TINYINT UNSIGNED NOT NULL DEFAULT 4,
-  estado     ENUM('libre','ocupada','reservada','inactiva') NOT NULL DEFAULT 'libre',
-  qr_token   CHAR(32) NOT NULL UNIQUE          -- fijo por mesa, va dentro del QR
+  estado     ENUM('libre','ocupada','inactiva') NOT NULL DEFAULT 'libre'
 ) ENGINE=InnoDB;
 
--- Cada vez que una mesa se abre se crea una sesion; el QR solo funciona
--- mientras exista una sesion 'abierta' para esa mesa.
+-- Limpia el estado de reservas de bases instaladas anteriormente.
+UPDATE mesas SET estado = 'libre' WHERE estado = 'reservada';
+ALTER TABLE mesas MODIFY estado ENUM('libre','ocupada','inactiva') NOT NULL DEFAULT 'libre';
+
+-- Retira la columna QR de instalaciones anteriores.
+SET @tiene_qr = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mesas' AND COLUMN_NAME = 'qr_token');
+SET @sql_qr = IF(@tiene_qr > 0, 'ALTER TABLE mesas DROP COLUMN qr_token', 'SELECT 1');
+PREPARE stmt_qr FROM @sql_qr;
+EXECUTE stmt_qr;
+DEALLOCATE PREPARE stmt_qr;
+
+-- Cada vez que una mesa se abre se crea una sesion.
 CREATE TABLE IF NOT EXISTS sesiones_mesa (
   id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   mesa_id         INT UNSIGNED NOT NULL,
@@ -136,23 +150,6 @@ CREATE TABLE IF NOT EXISTS sesiones_mesa (
   CONSTRAINT fk_ses_abre  FOREIGN KEY (abierta_por) REFERENCES usuarios(id),
   CONSTRAINT fk_ses_cierra FOREIGN KEY (cerrada_por) REFERENCES usuarios(id),
   INDEX idx_ses_estado (mesa_id, estado)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS reservas (
-  id            INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  mesa_id       INT UNSIGNED NOT NULL,
-  usuario_id    INT UNSIGNED NOT NULL,         -- quien registro la reserva
-  cliente       VARCHAR(100) NOT NULL,
-  telefono      VARCHAR(20) NULL,
-  personas      TINYINT UNSIGNED NOT NULL DEFAULT 2,
-  fecha_hora    DATETIME NOT NULL,
-  adelanto      DECIMAL(10,2) NOT NULL DEFAULT 0,
-  notas         VARCHAR(255) NULL,
-  estado        ENUM('pendiente','confirmada','cumplida','cancelada','no_asistio') NOT NULL DEFAULT 'pendiente',
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_res_mesa    FOREIGN KEY (mesa_id)    REFERENCES mesas(id),
-  CONSTRAINT fk_res_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-  INDEX idx_res_fecha (fecha_hora)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -223,54 +220,20 @@ CREATE TABLE IF NOT EXISTS detalle_venta (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- 5. KARAOKE: COLA DE CANCIONES
+-- 5. CONFIGURACION
 -- ---------------------------------------------------------------------
--- 'ronda' = numero de cancion de esa mesa dentro de la cola al momento de
--- pedirla (1ra, 2da, 3ra). Se ordena por ronda y luego por hora, asi las
--- mesas se turnan y ninguna acapara la cola.
-CREATE TABLE IF NOT EXISTS cola_canciones (
-  id              INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  sesion_mesa_id  INT UNSIGNED NOT NULL,
-  mesa_id         INT UNSIGNED NOT NULL,
-  video_id        VARCHAR(20)  NOT NULL,         -- ID de YouTube
-  titulo          VARCHAR(200) NOT NULL,
-  miniatura       VARCHAR(255) NULL,
-  ronda           TINYINT UNSIGNED NOT NULL DEFAULT 1,
-  estado          ENUM('pendiente','reproduciendo','reproducida','omitida','quitada') NOT NULL DEFAULT 'pendiente',
-  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  iniciada_en     DATETIME NULL,
-  finalizada_en   DATETIME NULL,
-  CONSTRAINT fk_cola_sesion FOREIGN KEY (sesion_mesa_id) REFERENCES sesiones_mesa(id),
-  CONSTRAINT fk_cola_mesa   FOREIGN KEY (mesa_id)        REFERENCES mesas(id),
-  INDEX idx_cola_orden (estado, ronda, created_at)
-) ENGINE=InnoDB;
-
--- ---------------------------------------------------------------------
--- 6. AUDITORIA Y CONFIGURACION
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS bitacora (
-  id          INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  usuario_id  INT UNSIGNED NULL,
-  accion      VARCHAR(60)  NOT NULL,           -- ej. venta_anulada, precio_cambiado
-  entidad     VARCHAR(40)  NULL,               -- ej. ventas, productos
-  entidad_id  INT UNSIGNED NULL,
-  detalle     VARCHAR(500) NULL,
-  ip          VARCHAR(45)  NULL,
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_bit_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL,
-  INDEX idx_bit_fecha (created_at)
-) ENGINE=InnoDB;
-
 CREATE TABLE IF NOT EXISTS configuracion (
   clave  VARCHAR(50) PRIMARY KEY,
   valor  VARCHAR(255) NOT NULL,
   descripcion VARCHAR(200) NULL
 ) ENGINE=InnoDB;
 
+DELETE FROM configuracion WHERE clave = 'max_canciones_mesa';
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ---------------------------------------------------------------------
--- 7. VISTAS UTILES
+-- 6. VISTAS UTILES
 -- ---------------------------------------------------------------------
 -- Productos con stock bajo (alerta en el dashboard)
 CREATE OR REPLACE VIEW v_stock_bajo AS
@@ -278,15 +241,6 @@ SELECT p.id, p.nombre, c.nombre AS categoria, p.stock, p.stock_minimo
 FROM productos p
 JOIN categorias c ON c.id = p.categoria_id
 WHERE p.estado = 1 AND p.stock <= p.stock_minimo;
-
--- Cola ordenada: la que suena y luego las pendientes por turnos
-CREATE OR REPLACE VIEW v_cola AS
-SELECT cc.id, cc.video_id, cc.titulo, cc.miniatura, cc.estado, cc.ronda,
-       m.numero AS mesa, cc.created_at
-FROM cola_canciones cc
-JOIN mesas m ON m.id = cc.mesa_id
-WHERE cc.estado IN ('reproduciendo','pendiente')
-ORDER BY (cc.estado = 'reproduciendo') DESC, cc.ronda ASC, cc.created_at ASC;
 
 -- Resumen por turno y metodo de pago (base del cierre de caja)
 CREATE OR REPLACE VIEW v_resumen_turno AS
@@ -298,7 +252,7 @@ WHERE v.estado <> 'anulada'
 GROUP BY v.turno_id, mp.id;
 
 -- ---------------------------------------------------------------------
--- 8. DATOS INICIALES
+-- 7. DATOS INICIALES
 -- ---------------------------------------------------------------------
 INSERT IGNORE INTO roles (id, nombre) VALUES (1,'admin'), (2,'cajero');
 
@@ -313,28 +267,27 @@ INSERT IGNORE INTO categorias (nombre) VALUES
   ('Cervezas'), ('Licores'), ('Cocteles'), ('Gaseosas y agua'), ('Piqueos');
 
 INSERT IGNORE INTO configuracion (clave, valor, descripcion) VALUES
-  ('max_canciones_mesa', '3', 'Maximo de canciones en cola por mesa'),
-  ('nombre_local', 'Mi Karaoke Bar', 'Nombre que aparece en tickets y pantalla'),
+  ('nombre_local', 'Karaoke Club', 'Nombre que aparece en el sistema y tickets'),
   ('moneda', 'S/', 'Simbolo de moneda');
 
 
 -- ---------------------------------------------------------------------
--- 9. DATOS DE EJEMPLO (opcional)  -  borra desde aqui hasta el final si no los quieres
+-- 8. DATOS DE EJEMPLO (opcional)  -  borra desde aqui hasta el final si no los quieres
 -- ---------------------------------------------------------------------
 -- Cajero de prueba: usuario cajero / contrasena Cajero123
 INSERT IGNORE INTO usuarios (rol_id, nombre, usuario, password) VALUES
   (2, 'Rosa Huaman', 'cajero', '$2y$10$wYzjSA3eBpD1QeSWi2QN1u9VWgH.rT1Usg3PFZF3BBohSVG6X.NKm');
 
 -- 8 mesas
-INSERT IGNORE INTO mesas (numero, capacidad, estado, qr_token) VALUES
-  ('1', 4,  'libre',     MD5(UUID())),
-  ('2', 4,  'libre',     MD5(UUID())),
-  ('3', 6,  'libre',     MD5(UUID())),
-  ('4', 6,  'libre',     MD5(UUID())),
-  ('5', 4,  'libre',     MD5(UUID())),
-  ('6', 8,  'libre',     MD5(UUID())),
-  ('7', 4,  'libre',     MD5(UUID())),
-  ('8', 10, 'libre',     MD5(UUID()));
+INSERT IGNORE INTO mesas (numero, capacidad, estado) VALUES
+  ('1', 4, 'libre'),
+  ('2', 4, 'libre'),
+  ('3', 6, 'libre'),
+  ('4', 6, 'libre'),
+  ('5', 4, 'libre'),
+  ('6', 8, 'libre'),
+  ('7', 4, 'libre'),
+  ('8', 10, 'libre');
 
 -- Productos de ejemplo (cambia nombres y precios por los tuyos)
 INSERT INTO productos (categoria_id, nombre, precio, stock, stock_minimo)
@@ -350,13 +303,6 @@ SELECT c.id, d.nombre, d.precio, d.stock, d.minimo
        ) d
   JOIN categorias c ON c.nombre = d.cat
  WHERE NOT EXISTS (SELECT 1 FROM productos p WHERE p.nombre = d.nombre);
-
--- Una reserva de ejemplo para dentro de 2 horas (la mesa 5 aparece "reservada" en el salón)
-INSERT INTO reservas (mesa_id, usuario_id, cliente, telefono, personas, fecha_hora, estado)
-SELECT m.id, u.id, 'Carla Quispe', '999111222', 6, NOW() + INTERVAL 2 HOUR, 'confirmada'
-  FROM mesas m JOIN usuarios u ON u.usuario = 'admin'
- WHERE m.numero = '5'
-   AND NOT EXISTS (SELECT 1 FROM reservas r WHERE r.cliente = 'Carla Quispe');
 
 -- Dos combos de ejemplo
 INSERT INTO combos (nombre, descripcion, precio, estado)

@@ -1,8 +1,6 @@
 <section class="login">
   <div class="login__brand">
-    <span class="brand-mark brand-mark--lg"><i class="bi bi-mic-fill"></i></span>
-    <h1><?= e(Config::get('nombre_local', 'Karaoke Bar')) ?></h1>
-    <p>Ingresa para abrir tu turno.</p>
+    <img class="brand-logo brand-logo--login" src="<?= asset('assets/logo.png') ?>" alt="<?= e(Config::get('nombre_local', 'Karaoke Club')) ?>">
   </div>
 
   <form method="post" action="<?= url('auth/login') ?>" class="login__form" autocomplete="off" novalidate>

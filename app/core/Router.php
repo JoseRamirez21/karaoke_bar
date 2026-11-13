@@ -2,7 +2,6 @@
 class Router
 {
     public static string $controller = '';
-    public static string $method = '';
 
     public function dispatch(): void
     {
@@ -30,8 +29,6 @@ class Router
             }
 
             self::$controller = $c;
-            self::$method = $m;
-
             $obj = new $class();
             if (!method_exists($obj, $m)) {
                 (new ErrorController())->show404();

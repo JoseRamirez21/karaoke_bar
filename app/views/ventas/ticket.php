@@ -1,6 +1,6 @@
 <?php
 $estado  = ['pagada' => ['brass', 'Por entregar'], 'entregada' => ['ok', 'Entregada'], 'anulada' => ['danger', 'Anulada']][$v['estado']] ?? ['plain', $v['estado']];
-$local   = Config::get('nombre_local', 'Karaoke Bar');
+$local   = Config::get('nombre_local', 'Karaoke Club');
 $sesion  = (int) $v['sesion_mesa_id'];
 $anulada = $v['estado'] === 'anulada';
 ?>
@@ -11,7 +11,7 @@ $anulada = $v['estado'] === 'anulada';
       <p><?= $sesion ? 'Cargado a la mesa ' . e($v['mesa']) . '.' : 'Venta en el mostrador.' ?></p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a class="btn btn-outline-field" href="<?= url($sesion ? 'mesas/cuenta/' . $sesion : 'mesas') ?>"><i class="bi bi-arrow-left"></i> <?= $sesion ? 'Cuenta de la mesa' : 'Salón' ?></a>
+      <a class="btn btn-outline-field" href="<?= url($sesion ? 'mesas/cuenta/' . $sesion : 'mesas') ?>"><i class="bi bi-arrow-left"></i> <?= $sesion ? 'Cuenta de la mesa' : 'Mesas' ?></a>
       <button class="btn btn-outline-field" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
       <a class="btn btn-brass" href="<?= url('ventas' . ($sesion ? '?sesion=' . $sesion : '')) ?>"><i class="bi bi-plus-lg"></i> Nueva venta</a>
     </div>
@@ -20,7 +20,7 @@ $anulada = $v['estado'] === 'anulada';
   <?php if ($v['estado'] === 'pagada'): ?>
     <div class="notice notice--warn">
       <i class="bi bi-box-seam"></i>
-      <span>Este pedido ya está cobrado. Entrégalo al cliente y márcalo como entregado.</span>
+      <span>Pedido cobrado. Pendiente de entrega.</span>
       <form method="post" action="<?= url('ventas/entregar/' . (int) $v['id']) ?>">
         <?= csrf_field() ?>
         <button class="btn btn-sm btn-brass" type="submit">Marcar entregado</button>
@@ -30,15 +30,13 @@ $anulada = $v['estado'] === 'anulada';
     <?php if ($razonNoAnular === null): ?>
       <section class="panel mb-4" id="anular" style="max-width:640px">
         <h2 class="panel__title mb-1">Anular este pedido</h2>
-        <p class="text-secondary">Úsalo si te equivocaste al cobrar y el pedido aún no se entregó. Se devuelve el stock y deja de contar en la caja.</p>
         <form method="post" action="<?= url('ventas/anular/' . (int) $v['id']) ?>" autocomplete="off"
               data-confirm="¿Anular el pedido <?= e($v['codigo']) ?>?"
               data-confirm-text="Se devolverá el stock y se quitará de la caja. No se puede deshacer."
               data-confirm-button="Sí, anular">
           <?= csrf_field() ?>
-          <label class="form-label" for="motivo">Motivo <small>(obligatorio)</small></label>
           <div class="input-group">
-            <input class="form-control" id="motivo" name="motivo" maxlength="200" minlength="3" required placeholder="Ej.: me equivoqué de producto">
+            <input class="form-control" id="motivo" name="motivo" maxlength="200" minlength="3" required>
             <button class="btn btn-outline-brass" type="submit">Anular pedido</button>
           </div>
         </form>
@@ -58,6 +56,7 @@ $anulada = $v['estado'] === 'anulada';
 
 <article class="ticket<?= $anulada ? ' ticket--anulada' : '' ?>">
   <?php if ($anulada): ?><p class="ticket__sello">ANULADO</p><?php endif; ?>
+  <img class="ticket__logo" src="<?= asset('assets/logo.png') ?>" alt="<?= e($local) ?>">
   <h2><?= e($local) ?></h2>
   <p class="ticket__sub">Ticket <?= e($v['codigo']) ?></p>
   <div class="ticket__line"><span>Fecha</span><span><?= e(fecha_corta($v['created_at'])) ?></span></div>

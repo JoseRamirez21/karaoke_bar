@@ -37,14 +37,6 @@ abstract class Controller
         Csrf::verifyOrFail();
     }
 
-    protected function json(array $data, int $status = 200): never
-    {
-        http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
     /** Convierte el parámetro de la URL en un id válido o muestra 404. */
     protected function idOr404(string $id): int
     {

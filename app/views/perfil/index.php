@@ -1,6 +1,5 @@
 <header class="page-head">
   <h1>Mi perfil</h1>
-  <p>Tus datos de acceso y tu contraseña.</p>
 </header>
 
 <div class="row g-4">
@@ -35,7 +34,6 @@
             <input type="password" class="form-control" id="repetir" name="repetir" minlength="8" required>
           </div>
         </div>
-        <p class="form-hint">Mínimo 8 caracteres, con al menos una letra y un número.</p>
         <button class="btn btn-brass" type="submit">Guardar contraseña</button>
       </form>
     </section>

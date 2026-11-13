@@ -20,12 +20,9 @@ class DashboardController extends Controller
             'desde'          => $desde,
             'turno'          => $turno,
             'ventas'         => $ventas,
-            'salon'          => Estadistica::salon(),
-            'cola'           => Estadistica::cola(),
-            'colaTotal'      => Estadistica::colaTotal(),
+            'mesas'          => Estadistica::mesas(),
             'stockBajo'      => Estadistica::stockBajo(),
             'stockBajoTotal' => Estadistica::stockBajoTotal(),
-            'reservas'       => Estadistica::reservasProximas(),
         ]);
     }
 }

@@ -18,13 +18,13 @@ $esperado = (float) $turno['monto_inicial'] + $resumen['efectivo'];
 </ul>
 
 <ul class="rows">
-  <li><div><strong>Fondo inicial</strong><span>Efectivo con el que empezó el turno</span></div><strong><?= e(money($turno['monto_inicial'])) ?></strong></li>
-  <li><div><strong>Cobrado en efectivo</strong><span>Solo ventas pagadas en efectivo</span></div><strong><?= e(money($resumen['efectivo'])) ?></strong></li>
-  <li><div><strong>Efectivo que debería haber</strong><span>Fondo inicial más lo cobrado en efectivo</span></div><strong class="text-brass"><?= e(money($esperado)) ?></strong></li>
+  <li><div><strong>Fondo inicial</strong></div><strong><?= e(money($turno['monto_inicial'])) ?></strong></li>
+  <li><div><strong>Cobrado en efectivo</strong></div><strong><?= e(money($resumen['efectivo'])) ?></strong></li>
+  <li><div><strong>Efectivo que debería haber</strong></div><strong class="text-brass"><?= e(money($esperado)) ?></strong></li>
 </ul>
 
 <?php if ((int) $resumen['anuladas']['n'] > 0): ?>
-  <p class="form-hint">Ventas anuladas: <?= (int) $resumen['anuladas']['n'] ?> (<?= e(money($resumen['anuladas']['total'])) ?>), no se suman.</p>
+  <p class="form-hint">Anuladas: <?= (int) $resumen['anuladas']['n'] ?> (<?= e(money($resumen['anuladas']['total'])) ?>).</p>
 <?php endif; ?>
 <?php if ($resumen['por_entregar'] > 0): ?>
   <p class="form-hint"><?= $resumen['por_entregar'] ?> pedido<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> cobrado<?= $resumen['por_entregar'] === 1 ? '' : 's' ?> aún sin entregar.</p>

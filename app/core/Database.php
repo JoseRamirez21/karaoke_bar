@@ -16,7 +16,7 @@ class Database
                 self::$pdo->exec("SET time_zone = '-05:00'"); // hora de Perú
             } catch (PDOException $e) {
                 error_log('DB connect: ' . $e->getMessage());
-                throw new AppException('No se pudo conectar a la base de datos. Revisa que MySQL esté encendido en XAMPP y que hayas importado karaoke_bar.sql.');
+                throw new AppException('No se pudo conectar a la base de datos. Revisa que MySQL esté encendido en XAMPP y que hayas importado database/karaoke_club.sql.');
             }
         }
         return self::$pdo;

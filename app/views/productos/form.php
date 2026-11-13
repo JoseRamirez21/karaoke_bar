@@ -9,7 +9,7 @@ $enVenta = $editar ? (int) $p['estado'] === 1 : (empty($GLOBALS['_old']) || isse
 <header class="page-head page-head--actions">
   <div>
     <h1><?= $editar ? 'Editar producto' : 'Nuevo producto' ?></h1>
-    <p><?= $editar ? e($p['nombre']) . ', stock actual: ' . (int) $p['stock'] : 'Registra lo que vendes y cuánto tienes.' ?></p>
+    <?php if ($editar): ?><p><?= e($p['nombre']) ?>, stock actual: <?= (int) $p['stock'] ?></p><?php endif; ?>
   </div>
   <a class="btn btn-outline-field" href="<?= url('productos') ?>"><i class="bi bi-arrow-left"></i> Volver</a>
 </header>
@@ -49,7 +49,6 @@ $enVenta = $editar ? (int) $p['estado'] === 1 : (empty($GLOBALS['_old']) || isse
           <div class="col-md-6">
             <label class="form-label" for="stock_minimo">Avisar cuando queden</label>
             <input class="form-control" id="stock_minimo" name="stock_minimo" inputmode="numeric" value="<?= old('stock_minimo', (string) ($p['stock_minimo'] ?? '5')) ?>">
-            <div class="form-hint mb-0 mt-1">Con esa cantidad o menos sale en "Stock bajo".</div>
           </div>
           <div class="col-12">
             <div class="form-check form-switch">
@@ -87,8 +86,8 @@ $enVenta = $editar ? (int) $p['estado'] === 1 : (empty($GLOBALS['_old']) || isse
             <input class="form-control" id="cantidad" name="cantidad" inputmode="numeric" required>
           </div>
           <div class="col-8">
-            <label class="form-label" for="motivo">Motivo <small>(obligatorio en salida y ajuste)</small></label>
-            <input class="form-control" id="motivo" name="motivo" maxlength="150" placeholder="Ej.: compra a proveedor">
+            <label class="form-label" for="motivo">Motivo</label>
+            <input class="form-control" id="motivo" name="motivo" maxlength="150">
           </div>
         </div>
         <button class="btn btn-outline-brass" type="submit">Registrar movimiento</button>

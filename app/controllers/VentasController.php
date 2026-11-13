@@ -74,7 +74,6 @@ class VentasController extends Controller
             $this->fallar($ruta, $e->getMessage());
         }
 
-        Bitacora::log('venta_creada', 'ventas', $v['id'], $v['codigo'] . ', ' . money($v['total']) . ', ' . $v['metodo'] . ($sesionId > 0 ? ', con mesa' : ', mostrador'));
 
         $msg = 'Venta ' . $v['codigo'] . ' cobrada: ' . money($v['total']) . '.';
         if ($v['vuelto'] !== null && $v['vuelto'] > 0.004) $msg .= ' Vuelto: ' . money($v['vuelto']) . '.';
@@ -114,7 +113,6 @@ class VentasController extends Controller
         } catch (AppException $e) {
             $this->fallar($volver, $e->getMessage());
         }
-        Bitacora::log('venta_entregada', 'ventas', $id, $v['codigo']);
         $this->listo($volver, 'Pedido ' . $v['codigo'] . ' entregado.');
     }
 
@@ -135,7 +133,6 @@ class VentasController extends Controller
         } catch (AppException $e) {
             $this->fallar($ruta, $e->getMessage());
         }
-        Bitacora::log('venta_anulada', 'ventas', $id, $v['codigo'] . ', ' . money($v['total']) . ', motivo: ' . $motivo);
         $this->listo($ruta, 'Pedido ' . $v['codigo'] . ' anulado. Se devolvió el stock.');
     }
 

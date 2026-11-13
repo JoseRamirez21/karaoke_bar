@@ -1,7 +1,6 @@
 <header class="page-head page-head--actions">
   <div>
     <h1>Productos</h1>
-    <p>Lo que vendes, con su precio y su stock.</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
     <a class="btn btn-outline-field" href="<?= url('categorias') ?>"><i class="bi bi-bookmarks"></i> Categorías</a>
@@ -58,6 +57,6 @@
       </tbody>
     </table>
   </div>
-  <?php if (!$productos): ?><p class="empty m-4">Aún no hay productos. Crea tu primer producto con el botón "Nuevo producto".</p><?php endif; ?>
+  <?php if (!$productos): ?><p class="empty m-4">Aún no hay productos.</p><?php endif; ?>
   <p class="empty m-4" id="sinResultados" hidden>Ningún producto coincide con la búsqueda.</p>
 </section>

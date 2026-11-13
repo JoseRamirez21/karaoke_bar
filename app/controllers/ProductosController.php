@@ -34,7 +34,6 @@ class ProductosController extends Controller
         if ($err) $this->fallar('productos/crear', $err);
 
         $id = Producto::crear($d, $stock, Auth::id());
-        Bitacora::log('producto_creado', 'productos', $id, $d['nombre'] . ' a ' . money($d['precio']));
         $this->listo('productos', 'Producto creado.');
     }
 
@@ -64,11 +63,6 @@ class ProductosController extends Controller
         if ($err) $this->fallar("productos/editar/$id", $err);
 
         Producto::actualizar($id, $d);
-        if (abs((float) $p['precio'] - (float) $d['precio']) > 0.001) {
-            Bitacora::log('precio_cambiado', 'productos', $id, $p['nombre'] . ': ' . money($p['precio']) . ' → ' . money($d['precio']));
-        } else {
-            Bitacora::log('producto_editado', 'productos', $id, $d['nombre']);
-        }
         $this->listo('productos', 'Cambios guardados.');
     }
 
@@ -80,7 +74,6 @@ class ProductosController extends Controller
 
         $nuevo = (int) $p['estado'] === 1 ? 0 : 1;
         Producto::setEstado($id, $nuevo);
-        Bitacora::log($nuevo ? 'producto_activado' : 'producto_desactivado', 'productos', $id, $p['nombre']);
         $this->listo('productos', $nuevo ? 'Producto disponible para la venta.' : 'Producto desactivado. Ya no aparecerá para vender.');
     }
 
@@ -103,11 +96,9 @@ class ProductosController extends Controller
         } catch (AppException $e) {
             $this->fallar("productos/editar/$id", $e->getMessage());
         }
-        Bitacora::log('stock_' . $tipo, 'productos', $id, $p['nombre'] . ": $cantidad, queda en $nuevo" . ($motivo !== '' ? " ($motivo)" : ''));
         $this->listo("productos/editar/$id", "Stock actualizado: ahora hay $nuevo.");
     }
 
-    // ------------------------------------------------------------------
     private function datos(): array
     {
         $precio = Validar::dinero(post('precio'));

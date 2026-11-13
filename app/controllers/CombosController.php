@@ -8,7 +8,7 @@ class CombosController extends Controller
 
     public function index(): void
     {
-        $this->view('combos/index', ['title' => 'Combos y promociones', 'combos' => Combo::todos(), 'resumenes' => Combo::resumenes()]);
+        $this->view('combos/index', ['title' => 'Combos', 'combos' => Combo::todos(), 'resumenes' => Combo::resumenes()]);
     }
 
     public function crear(): void
@@ -23,7 +23,6 @@ class CombosController extends Controller
         if ($err) $this->fallar('combos/crear', $err);
 
         $id = Combo::guardar(null, $d, $comp);
-        Bitacora::log('combo_creado', 'combos', $id, $d['nombre'] . ' a ' . money($d['precio']));
         $this->listo('combos', 'Combo creado.');
     }
 
@@ -43,11 +42,6 @@ class CombosController extends Controller
         if ($err) $this->fallar("combos/editar/$id", $err);
 
         Combo::guardar($id, $d, $comp);
-        if (abs((float) $c['precio'] - (float) $d['precio']) > 0.001) {
-            Bitacora::log('precio_cambiado', 'combos', $id, $c['nombre'] . ': ' . money($c['precio']) . ' → ' . money($d['precio']));
-        } else {
-            Bitacora::log('combo_editado', 'combos', $id, $d['nombre']);
-        }
         $this->listo('combos', 'Cambios guardados.');
     }
 
@@ -58,11 +52,9 @@ class CombosController extends Controller
         $c  = Combo::buscar($id) ?? $this->noExiste();
         $nuevo = (int) $c['estado'] === 1 ? 0 : 1;
         Combo::setEstado($id, $nuevo);
-        Bitacora::log($nuevo ? 'combo_activado' : 'combo_desactivado', 'combos', $id, $c['nombre']);
         $this->listo('combos', $nuevo ? 'Combo activado: ya se puede vender.' : 'Combo desactivado: ya no aparece para vender.');
     }
 
-    // ------------------------------------------------------------------
     private function productos(): array
     {
         return Database::all(

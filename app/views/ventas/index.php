@@ -7,13 +7,12 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
 ?>
 <header class="page-head">
   <h1>Vender</h1>
-  <p>Elige los productos, cobra y luego entrega el pedido.</p>
 </header>
 
 <?php if (!$turno): ?>
   <div class="notice notice--warn">
     <i class="bi bi-cash-stack"></i>
-    <span>Para vender necesitas tener un turno de caja abierto.</span>
+    <span>No tienes un turno de caja abierto.</span>
     <a class="btn btn-sm btn-brass" href="<?= url('caja') ?>">Abrir mi caja</a>
   </div>
 <?php else: ?>
@@ -26,7 +25,7 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
     <div class="col-xl-8">
       <?php if ($combos): ?>
       <section class="panel panel--flush mb-3">
-        <div class="panel__head px-4 pt-3 mb-0"><h2 class="panel__title">Combos y promociones</h2></div>
+        <div class="panel__head px-4 pt-3 mb-0"><h2 class="panel__title">Combos</h2></div>
         <div class="table-responsive">
           <table class="table table-app align-middle mb-0" id="tablaCombos">
             <tbody>
@@ -93,7 +92,7 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
             </tbody>
           </table>
         </div>
-        <?php if (!$productos): ?><p class="empty m-4">No hay productos disponibles para vender. Créalos en Productos.</p><?php endif; ?>
+        <?php if (!$productos): ?><p class="empty m-4">No hay productos disponibles.</p><?php endif; ?>
         <p class="empty m-4" id="sinResultados" hidden>Ningún producto coincide con la búsqueda.</p>
       </section>
     </div>
@@ -103,7 +102,7 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
       <section class="panel pos-summary">
         <h2 class="panel__title mb-3">Pedido</h2>
 
-        <p class="empty mb-3" id="resumenVacio">Aún no agregas nada. Usa los botones + de la lista.</p>
+        <p class="empty mb-3" id="resumenVacio">Pedido vacío.</p>
         <ul class="pos-lines" id="resumenLista"></ul>
         <div class="d-flex justify-content-between align-items-baseline mb-4">
           <span class="text-secondary">Total</span>
@@ -127,8 +126,8 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
         </select>
 
         <div id="bloqueEfectivo" class="mb-3" hidden>
-          <label class="form-label" for="recibido">Efectivo recibido <small>(opcional, para calcular el vuelto)</small></label>
-          <input class="form-control" id="recibido" name="recibido" inputmode="decimal" placeholder="Ej.: 100">
+          <label class="form-label" for="recibido">Efectivo recibido <small>(opcional)</small></label>
+          <input class="form-control" id="recibido" name="recibido" inputmode="decimal">
           <p class="vuelto" id="vuelto"></p>
         </div>
 

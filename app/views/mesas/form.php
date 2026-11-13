@@ -2,7 +2,7 @@
 <header class="page-head page-head--actions">
   <div>
     <h1><?= $editar ? 'Editar mesa' : 'Nueva mesa' ?></h1>
-    <p><?= $editar ? 'Mesa ' . e($m['numero']) : 'Cuántas personas caben y cómo la llamas en el salón.' ?></p>
+    <?php if ($editar): ?><p>Mesa <?= e($m['numero']) ?></p><?php endif; ?>
   </div>
   <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-arrow-left"></i> Volver</a>
 </header>
@@ -14,7 +14,6 @@
       <div class="col-md-6">
         <label class="form-label" for="numero">Número o nombre</label>
         <input class="form-control" id="numero" name="numero" maxlength="20" required value="<?= old('numero', $m['numero'] ?? '') ?>">
-        <div class="form-hint mb-0 mt-1">Por ejemplo 7 o VIP1.</div>
       </div>
       <div class="col-md-6">
         <label class="form-label" for="capacidad">Capacidad (personas)</label>

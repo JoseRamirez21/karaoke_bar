@@ -34,7 +34,6 @@ class PerfilController extends Controller
         }
 
         Usuario::actualizarPassword(Auth::id(), password_hash($nueva, PASSWORD_DEFAULT));
-        Bitacora::log('password_cambiada', 'usuarios', Auth::id());
         session_regenerate_id(true);
         $_SESSION['pass_default'] = false;
         flash('success', 'Contraseña actualizada.');

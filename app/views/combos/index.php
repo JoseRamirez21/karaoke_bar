@@ -1,7 +1,6 @@
 <header class="page-head page-head--actions">
   <div>
-    <h1>Combos y promociones</h1>
-    <p>Paquetes de productos con un precio especial. Aparecen en "Vender" mientras estén vigentes y haya stock.</p>
+    <h1>Combos</h1>
   </div>
   <a class="btn btn-brass" href="<?= url('combos/crear') ?>"><i class="bi bi-plus-lg"></i> Nuevo combo</a>
 </header>
@@ -44,5 +43,5 @@
       </tbody>
     </table>
   </div>
-  <?php if (!$combos): ?><p class="empty m-4">Aún no hay combos. Crea el primero con el botón "Nuevo combo".</p><?php endif; ?>
+  <?php if (!$combos): ?><p class="empty m-4">Aún no hay combos.</p><?php endif; ?>
 </section>

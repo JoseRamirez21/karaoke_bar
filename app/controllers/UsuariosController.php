@@ -26,7 +26,6 @@ class UsuariosController extends Controller
         if ($err) $this->fallar('usuarios/crear', $err);
 
         $id = Usuario::crear($d + ['password' => password_hash($pass, PASSWORD_DEFAULT)]);
-        Bitacora::log('usuario_creado', 'usuarios', $id, 'Usuario: ' . $d['usuario']);
         $this->listo('usuarios', 'Usuario creado. Entrégale su usuario y contraseña en persona.');
     }
 
@@ -50,7 +49,6 @@ class UsuariosController extends Controller
         if ($err) $this->fallar("usuarios/editar/$id", $err);
 
         Usuario::actualizar($id, $d);
-        Bitacora::log('usuario_editado', 'usuarios', $id, 'Usuario: ' . $d['usuario']);
         $this->listo('usuarios', 'Cambios guardados.');
     }
 
@@ -66,7 +64,6 @@ class UsuariosController extends Controller
         }
         $nuevo = (int) $u['estado'] === 1 ? 0 : 1;
         Usuario::setEstado($id, $nuevo);
-        Bitacora::log($nuevo ? 'usuario_activado' : 'usuario_desactivado', 'usuarios', $id, 'Usuario: ' . $u['usuario']);
         $this->listo('usuarios', $nuevo ? 'Usuario activado.' : 'Usuario desactivado. Ya no podrá ingresar.');
     }
 
@@ -81,11 +78,9 @@ class UsuariosController extends Controller
         if ($err) $this->fallar("usuarios/editar/$id", $err);
 
         Usuario::actualizarPassword($id, password_hash($pass, PASSWORD_DEFAULT));
-        Bitacora::log('password_restablecida', 'usuarios', $id, 'Usuario: ' . $u['usuario']);
         $this->listo("usuarios/editar/$id", 'Contraseña restablecida. Entrégasela al trabajador en persona.');
     }
 
-    // ------------------------------------------------------------------
     private function datos(): array
     {
         return [

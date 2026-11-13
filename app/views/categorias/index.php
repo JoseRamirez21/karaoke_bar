@@ -1,7 +1,6 @@
 <header class="page-head page-head--actions">
   <div>
     <h1>Categorías</h1>
-    <p>Los grupos en los que ordenas tus productos: cervezas, licores, piqueos...</p>
   </div>
   <a class="btn btn-outline-field" href="<?= url('productos') ?>"><i class="bi bi-cup-straw"></i> Ir a productos</a>
 </header>

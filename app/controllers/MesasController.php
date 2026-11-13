@@ -3,14 +3,14 @@ class MesasController extends Controller
 {
     public function __construct()
     {
-        $this->requireAuth();   // el cajero también ve el salón; lo de administrar es solo del admin
+        $this->requireAuth();
     }
 
     public function index(): void
     {
         $esAdmin = Auth::is('admin');
         $this->view('mesas/index', [
-            'title'   => 'Salón y mesas',
+            'title'   => 'Mesas',
             'esAdmin' => $esAdmin,
             'mesas'   => Mesa::todas($esAdmin),
         ]);
@@ -32,7 +32,6 @@ class MesasController extends Controller
         if ($err) $this->fallar('mesas/crear', $err);
 
         $id = Mesa::crear($numero, $cap);
-        Bitacora::log('mesa_creada', 'mesas', $id, "Mesa $numero para $cap personas");
         $this->listo('mesas', "Mesa $numero creada.");
     }
 
@@ -57,7 +56,6 @@ class MesasController extends Controller
         if ($err) $this->fallar("mesas/editar/$id", $err);
 
         Mesa::actualizar($id, $numero, $cap);
-        Bitacora::log('mesa_editada', 'mesas', $id, "Mesa {$m['numero']} → $numero, $cap personas");
         $this->listo('mesas', 'Cambios guardados.');
     }
 
@@ -71,44 +69,29 @@ class MesasController extends Controller
 
         if ($m['estado'] === 'inactiva') {
             Mesa::setEstado($id, 'libre');
-            Bitacora::log('mesa_activada', 'mesas', $id, 'Mesa ' . $m['numero']);
             $this->listo('mesas', 'Mesa activada.');
         }
         if ($m['estado'] !== 'libre' || Mesa::tieneSesionAbierta($id)) {
-            flash('error', 'Solo puedes desactivar una mesa que esté libre. Esta tiene una cuenta abierta o una reserva.');
+            flash('error', 'Solo puedes desactivar una mesa que esté libre. Esta tiene una cuenta abierta.');
             redirect('mesas');
         }
         Mesa::setEstado($id, 'inactiva');
-        Bitacora::log('mesa_desactivada', 'mesas', $id, 'Mesa ' . $m['numero']);
         $this->listo('mesas', 'Mesa desactivada.');
     }
 
-    // ------------------------------------------------------------------
-    // Operación del salón (admin y cajero)
-    // ------------------------------------------------------------------
-
-    /** Formulario para abrir una mesa libre (o reservada). */
+    /** Formulario para abrir una mesa libre. */
     public function abrir(string $id = '0'): void
     {
         $id = $this->idOr404($id);
         $m  = Mesa::buscar($id) ?? $this->noExiste();
 
         if ($m['estado'] === 'inactiva') {
-            flash('error', 'Esta mesa está desactivada.');
+            flash('error', 'Mesa desactivada.');
             redirect('mesas');
         }
-        if ($s = SesionMesa::abierta($id)) {          // ya está abierta: vamos directo a su cuenta
-            redirect('mesas/cuenta/' . (int) $s['id']);
-        }
-        // Si la mesa tiene una reserva cercana (o venimos desde la lista de reservas), se propone usarla
-        $reserva = null;
-        $rid = (int) ($_GET['reserva'] ?? 0);
-        if ($rid > 0) {
-            $r = Reserva::buscar($rid);
-            if ($r && (int) $r['mesa_id'] === $id && in_array($r['estado'], ['pendiente', 'confirmada'], true)) $reserva = $r;
-        }
-        $reserva ??= Reserva::paraMesaAhora($id);
-        $this->view('mesas/abrir', ['title' => 'Abrir mesa ' . $m['numero'], 'm' => $m, 'reserva' => $reserva]);
+        if ($s = SesionMesa::abierta($id)) redirect('mesas/cuenta/' . (int) $s['id']);
+
+        $this->view('mesas/abrir', ['title' => 'Abrir mesa ' . $m['numero'], 'm' => $m]);
     }
 
     public function iniciar(string $id = '0'): void
@@ -125,9 +108,6 @@ class MesasController extends Controller
         } catch (AppException $e) {
             $this->fallar("mesas/abrir/$id", $e->getMessage());
         }
-        $rid = (int) post('reserva_id');
-        if ($rid > 0 && Reserva::cumplir($rid, $id)) Bitacora::log('reserva_cumplida', 'reservas', $rid, 'Mesa ' . $m['numero']);
-        Bitacora::log('mesa_abierta', 'sesiones_mesa', $sid, 'Mesa ' . $m['numero'] . ($cliente !== '' ? ', ' . $cliente : ''));
         $this->listo('mesas/cuenta/' . $sid, 'Mesa ' . $m['numero'] . ' abierta.');
     }
 
@@ -141,7 +121,6 @@ class MesasController extends Controller
             's'         => $s,
             'ventas'    => SesionMesa::ventas($id),
             'resumen'   => SesionMesa::resumen($id),
-            'canciones' => SesionMesa::canciones($id),
         ]);
     }
 
@@ -156,14 +135,11 @@ class MesasController extends Controller
         } catch (AppException $e) {
             $this->fallar("mesas/cuenta/$id", $e->getMessage());
         }
-        Bitacora::log('mesa_cerrada', 'sesiones_mesa', $id, 'Mesa ' . $s['mesa'] . ', consumo ' . money($r['total']));
 
         $msg = 'Mesa ' . $s['mesa'] . ' cerrada. Consumo total: ' . money($r['total']) . '.';
-        if ($r['quitadas'] > 0) $msg .= ' Se quitaron ' . $r['quitadas'] . ($r['quitadas'] > 1 ? ' canciones pendientes.' : ' canción pendiente.');
         $this->listo('mesas/cuenta/' . $id, $msg);
     }
 
-    // ------------------------------------------------------------------
     private function soloAdmin(): void
     {
         if (!Auth::is('admin')) {

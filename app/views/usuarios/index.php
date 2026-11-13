@@ -1,7 +1,6 @@
 <header class="page-head page-head--actions">
   <div>
     <h1>Usuarios</h1>
-    <p>Las personas que pueden entrar al sistema. Solo tú, como administrador, puedes crearlas.</p>
   </div>
   <a class="btn btn-brass" href="<?= url('usuarios/crear') ?>"><i class="bi bi-plus-lg"></i> Nuevo usuario</a>
 </header>
@@ -40,4 +39,3 @@
     </table>
   </div>
 </section>
-<p class="form-hint">Los usuarios no se borran, solo se desactivan: así las ventas que hicieron siguen mostrando quién las cobró.</p>

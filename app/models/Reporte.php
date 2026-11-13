@@ -22,7 +22,6 @@ class Reporte
         );
         $r = array_map('floatval', $r);
         $r['ticket'] = $r['n'] > 0 ? $r['total'] / $r['n'] : 0.0;
-        $r['canciones'] = (int) Database::value("SELECT COUNT(*) FROM cola_canciones WHERE estado = 'reproducida' AND finalizada_en >= ? AND finalizada_en < ?", [$ini, $fin]);
         return $r;
     }
 
@@ -67,18 +66,6 @@ class Reporte
               GROUP BY u.id, u.nombre ORDER BY total DESC",
             [$ini, $fin]
         );
-    }
-
-    /** Ventas por hora del reloj, ordenadas como corre la noche (18, 19 ... 23, 0, 1 ...). */
-    public static function porHora(string $ini, string $fin): array
-    {
-        $filas = Database::all(
-            "SELECT HOUR(created_at) AS h, SUM(total) AS total, COUNT(*) AS n
-               FROM ventas WHERE estado <> 'anulada' AND created_at >= ? AND created_at < ? GROUP BY h",
-            [$ini, $fin]
-        );
-        usort($filas, fn($a, $b) => (($a['h'] - DIA_INICIO_HORA + 24) % 24) <=> (($b['h'] - DIA_INICIO_HORA + 24) % 24));
-        return $filas;
     }
 
     public static function turnos(string $ini, string $fin): array

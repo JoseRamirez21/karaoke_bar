@@ -14,15 +14,11 @@ class Auth
     /** @return array{0:bool,1:string} */
     public static function attempt(string $usuario, string $password): array
     {
-        if (self::bloqueado()) {
-            return [false, 'Demasiados intentos fallidos. Espera ' . BLOQUEO_MINUTOS . ' minutos e inténtalo de nuevo.'];
-        }
 
         $u  = Usuario::buscarPorUsuario($usuario);
         $ok = password_verify($password, $u['password'] ?? self::DUMMY_HASH) && $u !== null && (int) $u['estado'] === 1;
 
         if (!$ok) {
-            Bitacora::log('login_fallido', 'usuarios', null, 'Usuario: ' . $usuario);
             return [false, 'Usuario o contraseña incorrectos.'];
         }
 
@@ -34,13 +30,11 @@ class Auth
             Usuario::actualizarPassword((int) $u['id'], password_hash($password, PASSWORD_DEFAULT));
         }
         Usuario::registrarLogin((int) $u['id']);
-        Bitacora::log('login', 'usuarios', (int) $u['id'], null, (int) $u['id']);
         return [true, ''];
     }
 
     public static function logout(): void
     {
-        if (self::check()) Bitacora::log('logout', 'usuarios', self::id());
         unset($_SESSION['user'], $_SESSION['pass_default']);
         session_regenerate_id(true);
     }
@@ -59,12 +53,4 @@ class Auth
         $_SESSION['user']['nombre'] = $u['nombre'];
     }
 
-    private static function bloqueado(): bool
-    {
-        $n = (int) Database::value(
-            "SELECT COUNT(*) FROM bitacora WHERE accion = 'login_fallido' AND ip = ? AND created_at > (NOW() - INTERVAL " . (int) BLOQUEO_MINUTOS . ' MINUTE)',
-            [$_SERVER['REMOTE_ADDR'] ?? '']
-        );
-        return $n >= MAX_INTENTOS;
-    }
 }

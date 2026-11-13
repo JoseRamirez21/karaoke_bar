@@ -1,6 +1,5 @@
 <?php
-$ocupadas   = count(array_filter($salon, fn($m) => $m['estado'] === 'ocupada'));
-$reservadas = count(array_filter($salon, fn($m) => $m['estado'] === 'reservada'));
+$ocupadas   = count(array_filter($mesas, fn($m) => $m['estado'] === 'ocupada'));
 $maxMetodo  = 0.0;
 if ($ventas) foreach ($ventas['metodos'] as $m) $maxMetodo = max($maxMetodo, (float) $m['total']);
 $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
@@ -20,39 +19,36 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
 
 <nav class="accesos" aria-label="Accesos rápidos">
   <a class="btn btn-brass" href="<?= url('ventas') ?>"><i class="bi bi-receipt"></i> Vender</a>
-  <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-columns-gap"></i> Salón y mesas</a>
-  <a class="btn btn-outline-field" href="<?= url('cola') ?>"><i class="bi bi-mic"></i> Cola de karaoke</a>
-  <a class="btn btn-outline-field" href="<?= url('reservas') ?>"><i class="bi bi-calendar-check"></i> Reservas</a>
+  <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-columns-gap"></i> Mesas</a>
   <a class="btn btn-outline-field" href="<?= url('caja') ?>"><i class="bi bi-cash-stack"></i> Mi caja</a>
   <?php if ($esAdmin): ?><a class="btn btn-outline-field" href="<?= url('reportes') ?>"><i class="bi bi-bar-chart-line"></i> Reportes</a><?php endif; ?>
 </nav>
 
 <div class="row g-4 mb-4">
-  <!-- SALÓN -->
+  <!-- MESAS -->
   <div class="col-xl-8">
     <section class="panel panel--stage h-100">
       <div class="panel__head">
-        <h2 class="panel__title">Salón</h2>
-        <?php if ($salon): ?>
-          <span class="panel__meta"><?= $ocupadas ?> de <?= count($salon) ?> mesas ocupadas<?= $reservadas ? ', ' . $reservadas . ' reservada' . ($reservadas > 1 ? 's' : '') : '' ?></span>
+        <h2 class="panel__title">Mesas</h2>
+        <?php if ($mesas): ?>
+          <span class="panel__meta"><?= $ocupadas ?> de <?= count($mesas) ?> mesas ocupadas</span>
         <?php endif; ?>
       </div>
 
-      <?php if (!$salon): ?>
-        <p class="empty">Aún no hay mesas registradas. Cuando las crees, cada una aparecerá aquí con su estado.</p>
+      <?php if (!$mesas): ?>
+        <p class="empty">Aún no hay mesas registradas.</p>
       <?php else: ?>
         <div class="floor">
-          <?php foreach ($salon as $m): ?>
+          <?php foreach ($mesas as $m): ?>
             <div class="mesa mesa--<?= e($m['estado']) ?>" title="Mesa <?= e($m['numero']) ?>, para <?= (int) $m['capacidad'] ?> personas">
               <span class="mesa__n"><?= e($m['numero']) ?></span>
-              <span class="mesa__e"><?= ['libre' => 'Libre', 'ocupada' => 'Ocupada', 'reservada' => 'Reservada'][$m['estado']] ?? e($m['estado']) ?></span>
+              <span class="mesa__e"><?= ['libre' => 'Libre', 'ocupada' => 'Ocupada', 'inactiva' => 'Inactiva'][$m['estado']] ?? e($m['estado']) ?></span>
             </div>
           <?php endforeach; ?>
         </div>
         <ul class="legend">
           <li><i class="dot dot--libre"></i>Libre</li>
           <li><i class="dot dot--ocupada"></i>Ocupada</li>
-          <li><i class="dot dot--reservada"></i>Reservada</li>
         </ul>
       <?php endif; ?>
     </section>
@@ -66,7 +62,7 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
       </div>
 
       <?php if ($ventas === null): ?>
-        <p class="empty">No tienes un turno abierto. Abre tu caja antes de empezar a cobrar.</p>
+        <p class="empty">No tienes un turno abierto.</p>
         <a class="btn btn-brass" href="<?= url('caja') ?>">Abrir caja</a>
       <?php else: ?>
         <p class="big-figure"><?= e(money($ventas['total'])) ?></p>
@@ -89,57 +85,14 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
 </div>
 
 <div class="row g-4">
-  <!-- COLA -->
-  <div class="col-lg-4">
-    <section class="panel h-100">
-      <div class="panel__head">
-        <h2 class="panel__title">Cola de karaoke</h2>
-        <?php if ($colaTotal): ?><span class="panel__meta"><?= $colaTotal ?> en cola</span><?php endif; ?>
-      </div>
-      <?php if (!$cola): ?>
-        <p class="empty">Aún no hay canciones anotadas. Las anotas en Cola de karaoke.</p>
-      <?php else: ?>
-        <ol class="queue">
-          <?php foreach ($cola as $c): ?>
-            <li class="<?= $c['estado'] === 'reproduciendo' ? 'is-playing' : '' ?>">
-              <span class="queue__mesa">Mesa <?= e($c['mesa']) ?></span>
-              <span class="queue__title"><?= e($c['titulo']) ?></span>
-              <?php if ($c['estado'] === 'reproduciendo'): ?><span class="queue__now">Cantando ahora</span><?php endif; ?>
-            </li>
-          <?php endforeach; ?>
-        </ol>
-      <?php endif; ?>
-    </section>
-  </div>
-
-  <!-- RESERVAS -->
-  <div class="col-lg-4">
-    <section class="panel h-100">
-      <div class="panel__head"><h2 class="panel__title">Próximas reservas</h2></div>
-      <?php if (!$reservas): ?>
-        <p class="empty">No hay reservas para las próximas 24 horas.</p>
-      <?php else: ?>
-        <ul class="rows">
-          <?php foreach ($reservas as $r): ?>
-            <li>
-              <div><strong>Mesa <?= e($r['mesa']) ?></strong><span><?= e($r['cliente']) ?>, <?= (int) $r['personas'] ?> personas</span></div>
-              <time><?= e(hora12($r['fecha_hora'])) ?></time>
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      <?php endif; ?>
-    </section>
-  </div>
-
-  <!-- STOCK -->
-  <div class="col-lg-4">
+  <div class="col-12">
     <section class="panel h-100">
       <div class="panel__head">
         <h2 class="panel__title">Stock bajo</h2>
         <?php if ($stockBajoTotal): ?><span class="panel__meta"><?= $stockBajoTotal ?> producto<?= $stockBajoTotal > 1 ? 's' : '' ?></span><?php endif; ?>
       </div>
       <?php if (!$stockBajo): ?>
-        <p class="empty">Todo el stock está por encima de su mínimo.</p>
+        <p class="empty">Sin productos con stock bajo.</p>
       <?php else: ?>
         <ul class="rows">
           <?php foreach ($stockBajo as $p): ?>

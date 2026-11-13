@@ -2,14 +2,13 @@
 $un_dia   = $desde === $hasta;
 $maxDia   = 0.0; foreach ($dias as $d) $maxDia = max($maxDia, (float) $d['total']);
 $maxMet   = 0.0; foreach ($metodos as $m) $maxMet = max($maxMet, (float) $m['total']);
-$maxHora  = 0.0; foreach ($horas as $h) $maxHora = max($maxHora, (float) $h['total']);
 $fmt = fn(string $f) => date('d/m/Y', strtotime($f));
 $nomDia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 ?>
 <header class="page-head page-head--actions">
   <div>
     <h1>Reportes</h1>
-    <p><?= $un_dia ? e($fmt($desde)) : e($fmt($desde)) . ' al ' . e($fmt($hasta)) ?>. El día del bar cuenta desde las <?= (int) DIA_INICIO_HORA ?>:00 a. m., así una noche que pasa de las 12 no se parte en dos.</p>
+    <p><?= $un_dia ? e($fmt($desde)) : e($fmt($desde)) . ' al ' . e($fmt($hasta)) ?>.</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
     <a class="btn btn-outline-field" href="<?= url('reportes/exportar?desde=' . $desde . '&hasta=' . $hasta) ?>"><i class="bi bi-file-earmark-spreadsheet"></i> Descargar Excel (CSV)</a>
@@ -35,7 +34,6 @@ $nomDia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sá
   <div class="col-6 col-lg"><div class="mini"><small>Ventas</small><strong><?= (int) $resumen['n'] ?></strong></div></div>
   <div class="col-6 col-lg"><div class="mini"><small>Ticket promedio</small><strong><?= e(money($resumen['ticket'])) ?></strong></div></div>
   <div class="col-6 col-lg"><div class="mini"><small>Anuladas</small><strong><?= (int) $resumen['anuladas_n'] ?></strong><small><?= e(money($resumen['anuladas_total'])) ?></small></div></div>
-  <div class="col-12 col-lg"><div class="mini"><small>Canciones cantadas</small><strong><?= (int) $resumen['canciones'] ?></strong></div></div>
 </div>
 
 <div class="row g-4 mb-4">
@@ -87,7 +85,7 @@ $nomDia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sá
 </div>
 
 <div class="row g-4 mb-4">
-  <div class="col-lg-6">
+  <div class="col-12">
     <section class="panel h-100">
       <h2 class="panel__title mb-3">Lo más vendido</h2>
       <?php if (!$top): ?><p class="empty mb-0">No hay ventas en estas fechas.</p>
@@ -104,24 +102,6 @@ $nomDia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sá
     </section>
   </div>
 
-  <div class="col-lg-6">
-    <section class="panel h-100">
-      <h2 class="panel__title mb-3">Horas con más ventas</h2>
-      <?php if (!$horas): ?><p class="empty mb-0">No hay ventas en estas fechas.</p>
-      <?php else: ?>
-        <div class="bars--horas" style="min-height:150px">
-          <?php foreach ($horas as $h): $alto = $maxHora > 0 ? max(4, round(((float) $h['total'] / $maxHora) * 110)) : 4; ?>
-            <div class="hora" title="<?= (int) $h['n'] ?> ventas, <?= e(money($h['total'])) ?>">
-              <strong><?= e(number_format((float) $h['total'], 0)) ?></strong>
-              <div class="hora__barra" style="height: <?= $alto ?>px"><span style="height:100%"></span></div>
-              <span><?= str_pad((string) (int) $h['h'], 2, '0', STR_PAD_LEFT) ?>h</span>
-            </div>
-          <?php endforeach; ?>
-        </div>
-        <p class="form-hint mb-0">Soles vendidos en cada hora del reloj.</p>
-      <?php endif; ?>
-    </section>
-  </div>
 </div>
 
 <?php if (!$un_dia && $cajeros): ?>
