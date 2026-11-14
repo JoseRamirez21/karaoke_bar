@@ -14,13 +14,13 @@ class Validar
         return $n >= $min && $n <= $max;
     }
 
-    /** Entero >= 0 de hasta 6 cifras, o null si no es válido. */
+    
     public static function entero(string $v): ?int
     {
         return preg_match('/^\d{1,6}$/', $v) ? (int) $v : null;
     }
 
-    /** Dinero con hasta 2 decimales (acepta coma). Devuelve "12.50" o null. */
+    
     public static function dinero(string $v): ?string
     {
         $v = str_replace(',', '.', trim($v));

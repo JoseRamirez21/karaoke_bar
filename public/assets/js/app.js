@@ -1,7 +1,5 @@
 (function () {
   'use strict';
-
-  // Tema de SweetAlert acorde al sistema
   var Sw = Swal.mixin({
     background: '#2D1626',
     color: '#F4EADF',
@@ -14,8 +12,6 @@
     timer: 3500, timerProgressBar: true
   });
   window.Sw = Sw; window.Toast = Toast;
-
-  // Mensajes flash del servidor
   (window.__FLASH__ || []).forEach(function (f) {
     if (f.type === 'error') {
       Sw.fire({ icon: 'error', title: 'No se pudo completar', text: f.msg, confirmButtonText: 'Entendido' });
@@ -23,8 +19,6 @@
       Toast.fire({ icon: f.type === 'warning' ? 'warning' : 'success', title: f.msg });
     }
   });
-
-  // <form data-confirm="¿Eliminar?"> pide confirmación antes de enviar (reutilizable en todos los CRUD)
   document.querySelectorAll('form[data-confirm]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -39,8 +33,6 @@
       }).then(function (r) { if (r.isConfirmed) form.submit(); });
     });
   });
-
-  // Mostrar / ocultar contraseña
   document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var input = document.querySelector(btn.dataset.togglePassword);
@@ -49,9 +41,6 @@
       btn.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
     });
   });
-
-  // Filtros de tabla: <input data-filter-text="idTabla"> y <select data-filter-attr="idTabla" data-attr="cat">
-  // Cada <tr> trae data-search y los data-* que se quieran filtrar.
   var tablas = {};
   function aplicarFiltros(id) {
     var tabla = document.getElementById(id);

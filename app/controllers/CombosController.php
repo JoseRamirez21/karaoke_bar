@@ -64,7 +64,7 @@ class CombosController extends Controller
         );
     }
 
-    /** @return array{0:array,1:array<int,int>,2:?string} */
+    
     private function datos(int $exceptoId): array
     {
         $d = [
@@ -94,7 +94,7 @@ class CombosController extends Controller
         if (!$comp)                                                     return [$d, $comp, 'Elige al menos un producto para el combo (pon una cantidad mayor a 0).'];
         if (count($comp) > 30)                                          return [$d, $comp, 'Un combo puede tener hasta 30 productos distintos.'];
 
-        // Todos los productos deben existir y estar activos
+        
         $marcas = implode(',', array_fill(0, count($comp), '?'));
         $validos = (int) Database::value("SELECT COUNT(*) FROM productos WHERE estado = 1 AND id IN ($marcas)", array_keys($comp));
         if ($validos !== count($comp))                                  return [$d, $comp, 'Alguno de los productos elegidos ya no está disponible. Recarga la página.'];

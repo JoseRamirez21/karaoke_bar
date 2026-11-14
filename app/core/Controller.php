@@ -14,7 +14,7 @@ abstract class Controller
         require APP_PATH . "/views/layouts/$layout.php";
     }
 
-    /** Exige sesión (y opcionalmente uno de los roles indicados). */
+    
     protected function requireAuth(array $roles = []): void
     {
         if (!Auth::check()) redirect('auth/login');
@@ -26,7 +26,7 @@ abstract class Controller
         }
     }
 
-    /** Solo acepta POST con token CSRF válido. */
+    
     protected function requirePost(): void
     {
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -37,7 +37,7 @@ abstract class Controller
         Csrf::verifyOrFail();
     }
 
-    /** Convierte el parámetro de la URL en un id válido o muestra 404. */
+    
     protected function idOr404(string $id): int
     {
         $n = (int) $id;
@@ -48,7 +48,7 @@ abstract class Controller
         return $n;
     }
 
-    /** Vuelve al formulario con el mensaje de error y lo que el usuario había escrito. */
+    
     protected function fallar(string $ruta, string $mensaje): never
     {
         $old = $_POST;

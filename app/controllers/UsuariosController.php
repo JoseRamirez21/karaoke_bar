@@ -43,7 +43,7 @@ class UsuariosController extends Controller
         $u  = Usuario::buscarPorId($id) ?? $this->noExiste();
 
         $d = $this->datos();
-        if ($id === Auth::id()) $d['rol_id'] = (int) $u['rol_id']; // no puedes quitarte tu propio rol
+        if ($id === Auth::id()) $d['rol_id'] = (int) $u['rol_id']; 
 
         $err = $this->validar($d, $id);
         if ($err) $this->fallar("usuarios/editar/$id", $err);

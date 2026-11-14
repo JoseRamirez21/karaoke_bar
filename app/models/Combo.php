@@ -12,7 +12,7 @@ class Combo
         );
     }
 
-    /** combo_id => "6 x Cerveza, 1 x Piqueo" */
+    
     public static function resumenes(): array
     {
         $filas = Database::all(
@@ -27,7 +27,7 @@ class Combo
         return Database::one('SELECT * FROM combos WHERE id = ?', [$id]);
     }
 
-    /** producto_id => cantidad */
+    
     public static function componentes(int $id): array
     {
         $filas = Database::all('SELECT producto_id, cantidad FROM combo_productos WHERE combo_id = ?', [$id]);
@@ -39,7 +39,7 @@ class Combo
         return (int) Database::value('SELECT COUNT(*) FROM combos WHERE nombre = ? AND id <> ?', [$nombre, $exceptoId]) > 0;
     }
 
-    /** Crea o actualiza el combo y reemplaza sus productos, todo junto o nada. */
+    
     public static function guardar(?int $id, array $d, array $componentes): int
     {
         $pdo = Database::pdo();
@@ -70,10 +70,7 @@ class Combo
         Database::run('UPDATE combos SET estado = ? WHERE id = ?', [$estado, $id]);
     }
 
-    /**
-     * Combos que se pueden vender hoy: activos, dentro de su vigencia y con todos sus productos activos.
-     * "disponibles" = cuántos se pueden armar con el stock actual.
-     */
+    
     public static function vendibles(): array
     {
         $combos = Database::all('SELECT c.id, c.nombre, c.descripcion, c.precio FROM combos c WHERE ' . self::VIGENTE . ' ORDER BY c.nombre');

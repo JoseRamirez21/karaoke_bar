@@ -1,7 +1,7 @@
 <?php
 class Auth
 {
-    // Hash de relleno para que el tiempo de respuesta sea igual si el usuario no existe.
+    
     private const DUMMY_HASH = '$2y$10$ifKon//QTDqwCflK6iYABeuEsp3voiCuuq1BXX3TJSY6c2u1W11PW';
     private const PASSWORD_INICIAL = 'Admin123*';
 
@@ -11,7 +11,7 @@ class Auth
     public static function role(): string { return (string) ($_SESSION['user']['rol'] ?? ''); }
     public static function is(string ...$roles): bool { return in_array(self::role(), $roles, true); }
 
-    /** @return array{0:bool,1:string} */
+    
     public static function attempt(string $usuario, string $password): array
     {
 
@@ -39,7 +39,7 @@ class Auth
         session_regenerate_id(true);
     }
 
-    /** Revalida en cada petición: si desactivan al trabajador, se le cierra la sesión. */
+    
     public static function refresh(): void
     {
         if (!self::check()) return;

@@ -1,4 +1,3 @@
-// Carrito de la pantalla "Vender". Solo muestra y suma: el servidor vuelve a calcular todo con los precios reales.
 (function () {
   'use strict';
   var tabla  = document.getElementById('tablaVenta');
@@ -16,8 +15,6 @@
   var total = 0;
 
   function dinero(n) { return 'S/ ' + n.toFixed(2); }
-
-  // Mantiene la cantidad entre 0 y el stock disponible
   function cantidad(input) {
     var q = parseInt(input.value, 10);
     var max = parseInt(input.max, 10);
@@ -54,7 +51,7 @@
       var sub = parseFloat(tr.dataset.precio) * q;
       total += sub;
       var li = document.createElement('li');
-      var a = document.createElement('span');   a.textContent = q + ' × ' + tr.dataset.nombre;   // textContent: nunca se interpreta como HTML
+      var a = document.createElement('span');   a.textContent = q + ' × ' + tr.dataset.nombre;
       var b = document.createElement('strong'); b.textContent = dinero(sub);
       li.appendChild(a); li.appendChild(b);
       lista.appendChild(li);
@@ -76,19 +73,15 @@
   form.addEventListener('input', recalcular);
   metodo.addEventListener('change', actualizarVuelto);
   recibido.addEventListener('input', actualizarVuelto);
-
-  // Enter nunca cobra por accidente: solo el botón "Cobrar"
   form.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') e.preventDefault();
   });
 
   form.addEventListener('submit', function (e) {
     if (total <= 0) { e.preventDefault(); return; }
-    btn.disabled = true;               // evita cobrar dos veces con un doble clic
+    btn.disabled = true;
     btn.textContent = 'Cobrando...';
   });
-
-  // Si vuelven con el botón "atrás" del navegador, se recalcula todo
   window.addEventListener('pageshow', recalcular);
   recalcular();
 })();

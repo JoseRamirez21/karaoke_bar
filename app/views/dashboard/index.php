@@ -25,7 +25,7 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
 </nav>
 
 <div class="row g-4 mb-4">
-  <!-- MESAS -->
+  
   <div class="col-xl-8">
     <section class="panel panel--stage h-100">
       <div class="panel__head">
@@ -54,7 +54,7 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
     </section>
   </div>
 
-  <!-- CAJA -->
+  
   <div class="col-xl-4">
     <section class="panel h-100">
       <div class="panel__head">

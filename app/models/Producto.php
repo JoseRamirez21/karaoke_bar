@@ -20,7 +20,7 @@ class Producto
         return (int) Database::value('SELECT COUNT(*) FROM productos WHERE nombre = ? AND id <> ?', [$nombre, $exceptoId]) > 0;
     }
 
-    /** Crea el producto y, si trae stock inicial, deja el movimiento registrado. */
+    
     public static function crear(array $d, int $stockInicial, int $usuarioId): int
     {
         $pdo = Database::pdo();
@@ -55,11 +55,7 @@ class Producto
         Database::run('UPDATE productos SET estado = ? WHERE id = ?', [$estado, $id]);
     }
 
-    /**
-     * Entrada / salida / ajuste (fijar el stock a un valor). Todo en una transacción
-     * con el registro bloqueado, para que dos cajeros no pisen el mismo stock.
-     * Lanza AppException con un mensaje claro si la operación no es válida.
-     */
+    
     public static function ajustarStock(int $id, string $tipo, int $cantidad, string $motivo, int $usuarioId): int
     {
         $pdo = Database::pdo();

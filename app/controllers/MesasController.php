@@ -59,7 +59,7 @@ class MesasController extends Controller
         $this->listo('mesas', 'Cambios guardados.');
     }
 
-    /** Desactiva una mesa libre (o la vuelve a activar). */
+    
     public function estado(string $id = '0'): void
     {
         $this->soloAdmin();
@@ -79,7 +79,7 @@ class MesasController extends Controller
         $this->listo('mesas', 'Mesa desactivada.');
     }
 
-    /** Formulario para abrir una mesa libre. */
+    
     public function abrir(string $id = '0'): void
     {
         $id = $this->idOr404($id);
@@ -111,7 +111,7 @@ class MesasController extends Controller
         $this->listo('mesas/cuenta/' . $sid, 'Mesa ' . $m['numero'] . ' abierta.');
     }
 
-    /** La cuenta de una mesa (el id de la URL es el de la sesión). */
+    
     public function cuenta(string $id = '0'): void
     {
         $id = $this->idOr404($id);

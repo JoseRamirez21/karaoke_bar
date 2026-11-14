@@ -21,7 +21,7 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
   <input type="hidden" name="token" value="<?= e($token) ?>">
 
   <div class="row g-4">
-    <!-- PRODUCTOS -->
+    
     <div class="col-xl-8">
       <?php if ($combos): ?>
       <section class="panel panel--flush mb-3">
@@ -97,7 +97,7 @@ $selMetodo = (int) ($old['metodo_id'] ?? 0);
       </section>
     </div>
 
-    <!-- PEDIDO -->
+    
     <div class="col-xl-4">
       <section class="panel pos-summary">
         <h2 class="panel__title mb-3">Pedido</h2>

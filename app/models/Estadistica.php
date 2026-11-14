@@ -1,8 +1,8 @@
 <?php
-/** Consultas de solo lectura para el panel. */
+
 class Estadistica
 {
-    /** Inicio del "día de negocio" (el bar trabaja pasada la medianoche). */
+    
     public static function inicioDiaNegocio(): string
     {
         return date('Y-m-d', strtotime('-' . DIA_INICIO_HORA . ' hours')) . sprintf(' %02d:00:00', DIA_INICIO_HORA);
@@ -18,7 +18,7 @@ class Estadistica
         return Database::all("SELECT m.id, m.numero, m.capacidad, m.estado FROM mesas m WHERE m.estado <> 'inactiva' ORDER BY CAST(m.numero AS UNSIGNED), m.numero");
     }
 
-    /** Ventas no anuladas desde $desde, o solo las de un turno si se indica. */
+    
     public static function ventas(string $desde, ?int $turnoId = null): array
     {
         $cond  = $turnoId !== null ? 'v.turno_id = ?' : 'v.created_at >= ?';

@@ -13,7 +13,7 @@ class Database
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
-                self::$pdo->exec("SET time_zone = '-05:00'"); // hora de Perú
+                self::$pdo->exec("SET time_zone = '-05:00'"); 
             } catch (PDOException $e) {
                 error_log('DB connect: ' . $e->getMessage());
                 throw new AppException('No se pudo conectar a la base de datos. Revisa que MySQL esté encendido en XAMPP y que hayas importado database/karaoke_club.sql.');
@@ -45,7 +45,7 @@ class Database
         return $v === false ? null : $v;
     }
 
-    /** INSERT / UPDATE / DELETE. Devuelve filas afectadas. */
+    
     public static function run(string $sql, array $params = []): int
     {
         $st = self::pdo()->prepare($sql);

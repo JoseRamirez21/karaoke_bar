@@ -1,7 +1,7 @@
 <?php
 class Venta
 {
-    /** Productos que se pueden vender ahora (producto y categoría activos). */
+    
     public static function productosVendibles(): array
     {
         return Database::all(
@@ -17,7 +17,7 @@ class Venta
         return Database::all('SELECT id, nombre, es_efectivo FROM metodos_pago WHERE estado = 1 ORDER BY id');
     }
 
-    /** Mesas con cuenta abierta, para elegir a cuál cargar el pedido. */
+    
     public static function mesasAbiertas(): array
     {
         return Database::all(
@@ -28,23 +28,14 @@ class Venta
         );
     }
 
-    /**
-     * Registra la venta ya cobrada: guarda el pedido, descuenta el stock y deja el historial,
-     * todo en una sola transacción (si algo falla, no se guarda nada).
-     * Los precios SIEMPRE se leen de la base de datos, nunca de lo que mande el navegador.
-     * Un combo descuenta el stock de cada producto que incluye (sumado con lo que se venda suelto).
-     *
-     * @param array<int,int> $items   producto_id => cantidad
-     * @param array<int,int> $combos  combo_id => cantidad
-     * @return array{id:int, codigo:string, total:float, vuelto:?float, metodo:string}
-     */
+    
     public static function crear(int $usuarioId, int $turnoId, ?int $sesionId, int $metodoId, array $items, array $combos, ?string $recibido): array
     {
         $pdo = Database::pdo();
         $pdo->beginTransaction();
         try {
-            // Bloquear el turno y la mesa evita vender en un turno que se está cerrando
-            // o en una mesa que otro cajero está cerrando en ese mismo instante.
+            
+            
             if (!Database::one("SELECT id FROM turnos_caja WHERE id = ? AND estado = 'abierto' FOR UPDATE", [$turnoId])) {
                 throw new AppException('Tu turno ya está cerrado. Abre uno nuevo para vender.');
             }
@@ -54,7 +45,7 @@ class Venta
             $metodo = Database::one('SELECT id, nombre, es_efectivo FROM metodos_pago WHERE id = ? AND estado = 1', [$metodoId]);
             if (!$metodo) throw new AppException('Elige cómo paga el cliente.');
 
-            // 1) Cuánto de cada producto hace falta en total (suelto + dentro de los combos)
+            
             $necesita = [];
             foreach ($items as $pid => $cant) $necesita[(int) $pid] = ($necesita[(int) $pid] ?? 0) + $cant;
 
@@ -72,7 +63,7 @@ class Venta
                 $lineasCombo[] = ['combo' => $co, 'cant' => $cant];
             }
 
-            // 2) Bloquear los productos (siempre en el mismo orden) y comprobar stock
+            
             ksort($necesita);
             $productos = [];
             foreach ($necesita as $pid => $cant) {
@@ -91,7 +82,7 @@ class Venta
                 $productos[$pid] = $p;
             }
 
-            // 3) Renglones y total
+            
             $lineas = [];
             $total  = 0.0;
             foreach ($items as $pid => $cant) {
@@ -116,7 +107,7 @@ class Venta
                 $vuelto = round((float) $recibido - $total, 2);
             }
 
-            // Se inserta con un código temporal y luego se le pone el definitivo (T-000123) según su id.
+            
             Database::run(
                 "INSERT INTO ventas (codigo, sesion_mesa_id, turno_id, usuario_id, metodo_pago_id, total, estado)
                  VALUES (?, ?, ?, ?, ?, ?, 'pagada')",
@@ -132,7 +123,7 @@ class Venta
                     [$id, $l['producto_id'], $l['combo_id'], $l['desc'], $l['cant'], $l['precio'], number_format($l['sub'], 2, '.', '')]
                 );
             }
-            // Un movimiento de stock por producto: es exactamente lo que se devuelve si luego se anula la venta.
+            
             foreach ($necesita as $pid => $cant) {
                 $nuevo = (int) $productos[$pid]['stock'] - $cant;
                 Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $pid]);
@@ -169,18 +160,14 @@ class Venta
         return Database::all('SELECT descripcion, cantidad, precio_unitario, subtotal, combo_id FROM detalle_venta WHERE venta_id = ? ORDER BY id', [$id]);
     }
 
-    /** Pasa de "pagada" a "entregada". Falla si ya estaba entregada o anulada. */
+    
     public static function entregar(int $id): void
     {
         $n = Database::run("UPDATE ventas SET estado = 'entregada', entregada_en = NOW() WHERE id = ? AND estado = 'pagada'", [$id]);
         if ($n === 0) throw new AppException('Este pedido ya fue entregado o está anulado.');
     }
 
-    /**
-     * ¿Se puede anular este pedido? Devuelve null si sí, o la razón (texto) si no.
-     * Reglas: solo si aún no se entregó, su turno de caja sigue abierto, y lo anula
-     * quien lo cobró o el administrador.
-     */
+    
     public static function razonNoAnular(array $venta, ?array $turno, int $usuarioId, bool $esAdmin): ?string
     {
         if ($venta['estado'] === 'anulada')   return 'Este pedido ya está anulado.';
@@ -190,11 +177,7 @@ class Venta
         return null;
     }
 
-    /**
-     * Anula el pedido y devuelve el stock, todo en una transacción. Lanza AppException si no se puede.
-     * El stock que se devuelve sale de los movimientos que dejó la venta, así que es exactamente lo que se descontó
-     * (incluido lo que venía dentro de combos, aunque luego cambien).
-     */
+    
     public static function anular(int $id, int $usuarioId, bool $esAdmin, string $motivo): void
     {
         $pdo = Database::pdo();
@@ -203,7 +186,7 @@ class Venta
             $previo = Database::one('SELECT turno_id FROM ventas WHERE id = ?', [$id]);
             if (!$previo) throw new AppException('El pedido no existe.');
 
-            // Mismo orden de bloqueos que al cobrar y al cerrar la caja: primero el turno, luego la venta.
+            
             $turno = Database::one('SELECT id, estado FROM turnos_caja WHERE id = ? FOR UPDATE', [$previo['turno_id']]);
             $v     = Database::one('SELECT * FROM ventas WHERE id = ? FOR UPDATE', [$id]);
             if (!$v) throw new AppException('El pedido no existe.');

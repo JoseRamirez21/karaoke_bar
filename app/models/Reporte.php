@@ -1,8 +1,8 @@
 <?php
-/** Consultas de solo lectura para los reportes. El "día" del bar empieza a las DIA_INICIO_HORA (por las noches que pasan de las 12). */
+
 class Reporte
 {
-    /** @return array{0:string,1:string} [inicio, fin) del rango de días del negocio */
+    
     public static function rango(string $desde, string $hasta): array
     {
         $h = sprintf(' %02d:00:00', DIA_INICIO_HORA);

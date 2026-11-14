@@ -33,7 +33,7 @@ class ReportesController extends Controller
         ]);
     }
 
-    /** Descarga las ventas del rango en CSV (se abre en Excel). */
+    
     public function exportar(): void
     {
         [$desde, $hasta] = $this->fechas();
@@ -43,7 +43,7 @@ class ReportesController extends Controller
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="ventas_' . $desde . '_a_' . $hasta . '.csv"');
         $out = fopen('php://output', 'w');
-        fwrite($out, "\xEF\xBB\xBF");   // para que Excel respete las tildes
+        fwrite($out, "\xEF\xBB\xBF");   
         fputcsv($out, ['Ticket', 'Fecha y hora', 'Lugar', 'Atendió', 'Pago', 'Estado', 'Total']);
         foreach ($filas as $f) {
             fputcsv($out, [
@@ -55,7 +55,7 @@ class ReportesController extends Controller
         exit;
     }
 
-    /** Evita que Excel ejecute como fórmula un texto que empiece con = + - @ */
+    
     private function seguro(string $t): string
     {
         return preg_match('/^[=+\-@\t\r]/', $t) ? "'" . $t : $t;
@@ -73,7 +73,7 @@ class ReportesController extends Controller
         return ($d && $d->format('Y-m-d') === $f) ? $f : null;
     }
 
-    /** @return array{0:string,1:string} desde y hasta (por defecto, hoy), máximo un año */
+    
     private function fechas(): array
     {
         $hoy   = $this->hoy();

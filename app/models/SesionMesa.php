@@ -1,8 +1,8 @@
 <?php
-/** La "cuenta" de una mesa: desde que se abre hasta que los clientes se van. */
+
 class SesionMesa
 {
-    /** La sesión abierta de una mesa (o null si está cerrada). */
+    
     public static function abierta(int $mesaId): ?array
     {
         return Database::one("SELECT * FROM sesiones_mesa WHERE mesa_id = ? AND estado = 'abierta' ORDER BY id DESC LIMIT 1", [$mesaId]);
@@ -21,7 +21,7 @@ class SesionMesa
         );
     }
 
-    /** Abre la mesa: crea la sesión y la marca como ocupada, todo junto o nada. */
+    
     public static function abrir(int $mesaId, int $usuarioId, string $cliente): int
     {
         $pdo = Database::pdo();
@@ -44,7 +44,7 @@ class SesionMesa
         }
     }
 
-    /** Los pedidos (ventas) de la mesa, del más antiguo al más nuevo. */
+    
     public static function ventas(int $sesionId): array
     {
         return Database::all(
@@ -57,7 +57,7 @@ class SesionMesa
         );
     }
 
-    /** Lo consumido (sin contar anulados) y cuántos pedidos cobrados faltan entregar. */
+    
     public static function resumen(int $sesionId): array
     {
         $r = Database::one(
@@ -70,7 +70,7 @@ class SesionMesa
         return ['total' => (float) $r['total'], 'n' => (int) $r['n'], 'por_entregar' => (int) $r['por_entregar']];
     }
 
-    /** Cierra la cuenta y libera la mesa. No deja cerrar si hay pedidos cobrados sin entregar. */
+    
     public static function cerrar(int $id, int $usuarioId): array
     {
         $pdo = Database::pdo();

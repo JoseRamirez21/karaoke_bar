@@ -3,20 +3,20 @@ class VentasController extends Controller
 {
     public function __construct()
     {
-        $this->requireAuth();   // admin y cajero
+        $this->requireAuth();   
     }
 
-    /** Pantalla de venta: elegir productos, mesa y forma de pago. */
+    
     public function index(): void
     {
         $turno = Caja::abierto(Auth::id());
         $mesas = Venta::mesasAbiertas();
 
-        // Si venimos de la cuenta de una mesa, la dejamos elegida
+        
         $pre = (int) ($_GET['sesion'] ?? 0);
         if (!in_array($pre, array_map('intval', array_column($mesas, 'sesion_id')), true)) $pre = 0;
 
-        // Token de un solo uso: si alguien da doble clic en "Cobrar", el segundo envío se rechaza.
+        
         $tokens   = $_SESSION['venta_tokens'] ?? [];
         $token    = bin2hex(random_bytes(16));
         $tokens[] = $token;
@@ -46,17 +46,17 @@ class VentasController extends Controller
         $turno = Caja::abierto(Auth::id());
         if (!$turno) $this->fallar('ventas', 'Primero abre tu turno de caja para poder vender.');
 
-        $sesionId = max(0, (int) post('sesion_id'));            // 0 = mostrador, sin mesa
+        $sesionId = max(0, (int) post('sesion_id'));            
         $ruta     = 'ventas' . ($sesionId > 0 ? '?sesion=' . $sesionId : '');
 
-        // Consumir el token (anti doble envío)
+        
         $tokens = $_SESSION['venta_tokens'] ?? [];
         $k      = array_search((string) ($_POST['token'] ?? ''), $tokens, true);
         if ($k === false) $this->fallar($ruta, 'Este pedido ya se procesó o la pantalla venció. Revisa si ya se cobró antes de repetirlo.');
         unset($tokens[$k]);
         $_SESSION['venta_tokens'] = array_values($tokens);
 
-        // Productos y combos: solo cuentan los que tienen cantidad entera mayor a 0
+        
         $items  = $this->cantidades($_POST['items'] ?? []);
         $combos = $this->cantidades($_POST['combos'] ?? []);
         if (!$items && !$combos)              $this->fallar($ruta, 'Agrega al menos un producto al pedido.');
@@ -80,7 +80,7 @@ class VentasController extends Controller
         $this->listo('ventas/ticket/' . $v['id'], $msg);
     }
 
-    /** El ticket de una venta (se puede imprimir). */
+    
     public function ticket(string $id = '0'): void
     {
         $id = $this->idOr404($id);
@@ -96,7 +96,7 @@ class VentasController extends Controller
         ]);
     }
 
-    /** Marca el pedido como entregado al cliente. */
+    
     public function entregar(string $id = '0'): void
     {
         $this->requirePost();
@@ -104,7 +104,7 @@ class VentasController extends Controller
         $v  = Venta::buscar($id);
         if (!$v) { (new ErrorController())->show404(); exit; }
 
-        // A dónde volver: solo rutas internas conocidas (nunca una dirección que mande el navegador)
+        
         $volver = post('volver');
         if (!preg_match('#^(ventas/ticket|mesas/cuenta)/\d+$#', $volver)) $volver = 'ventas/ticket/' . $id;
 
@@ -116,7 +116,7 @@ class VentasController extends Controller
         $this->listo($volver, 'Pedido ' . $v['codigo'] . ' entregado.');
     }
 
-    /** Anula un pedido cobrado que aún no se entregó: devuelve el stock y deja el motivo registrado. */
+    
     public function anular(string $id = '0'): void
     {
         $this->requirePost();
@@ -136,7 +136,7 @@ class VentasController extends Controller
         $this->listo($ruta, 'Pedido ' . $v['codigo'] . ' anulado. Se devolvió el stock.');
     }
 
-    /** Convierte lo que manda el formulario (id => cantidad) en cantidades enteras válidas; descarta el resto. */
+    
     private function cantidades(mixed $raw): array
     {
         $r = [];

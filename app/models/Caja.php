@@ -1,7 +1,7 @@
 <?php
 class Caja
 {
-    /** El turno abierto de un usuario (o null si no tiene). */
+    
     public static function abierto(int $usuarioId): ?array
     {
         return Database::one("SELECT * FROM turnos_caja WHERE usuario_id = ? AND estado = 'abierto' ORDER BY id DESC LIMIT 1", [$usuarioId]);
@@ -15,7 +15,7 @@ class Caja
         );
     }
 
-    /** Abre un turno. Bloquea la fila del usuario para que dos clics seguidos no abran dos turnos. */
+    
     public static function abrir(int $usuarioId, string $montoInicial): int
     {
         $pdo = Database::pdo();
@@ -35,7 +35,7 @@ class Caja
         }
     }
 
-    /** Lo cobrado en un turno, por método de pago (las ventas anuladas no cuentan). */
+    
     public static function resumen(int $turnoId): array
     {
         $metodos = Database::all(
@@ -60,11 +60,7 @@ class Caja
                 'anuladas' => $anuladas, 'por_entregar' => $porEntregar];
     }
 
-    /**
-     * Cierra el turno comparando el efectivo contado con el esperado.
-     * Si hay diferencia, obliga a escribir una explicación.
-     * @return array{esperado: float, diferencia: float}
-     */
+    
     public static function cerrar(int $id, string $contado, string $observacion): array
     {
         $pdo = Database::pdo();
@@ -96,7 +92,7 @@ class Caja
         }
     }
 
-    /** Últimos turnos: los de un usuario, o todos si $usuarioId es null. */
+    
     public static function historial(?int $usuarioId, int $limite = 15): array
     {
         $limite = max(1, $limite);

@@ -13,7 +13,7 @@ class CajaController extends Controller
             'title'     => 'Mi caja',
             'turno'     => $turno,
             'resumen'   => $turno ? Caja::resumen((int) $turno['id']) : null,
-            // el admin ve los turnos de todos; el cajero, solo los suyos
+            
             'historial' => Caja::historial(Auth::is('admin') ? null : Auth::id()),
         ]);
     }
@@ -54,7 +54,7 @@ class CajaController extends Controller
         $this->listo('caja/detalle/' . (int) $turno['id'], 'Turno cerrado. ' . $texto);
     }
 
-    /** Resumen de un turno (abierto o cerrado). El cajero solo ve los suyos. */
+    
     public function detalle(string $id = '0'): void
     {
         $id = $this->idOr404($id);

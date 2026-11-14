@@ -17,7 +17,7 @@ define('APP_PATH', ROOT_PATH . '/app');
 
 require APP_PATH . '/config/config.php';
 
-// BASE_URL: ruta donde vive la app (ej. /karaoke_bar), sin /public
+
 $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 define('BASE_URL', rtrim((string) preg_replace('#/public$#', '', $script), '/'));
 

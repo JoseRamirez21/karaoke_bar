@@ -1,5 +1,5 @@
 <?php
-/** Lee la tabla `configuracion` (clave/valor) con caché por petición. */
+
 class Config
 {
     private static ?array $cache = null;

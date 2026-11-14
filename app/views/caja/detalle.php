@@ -1,7 +1,7 @@
 <?php
 $cerrado = $t['estado'] === 'cerrado';
 $dif     = (float) $t['diferencia'];
-$turno   = $t;   // la parte común (_resumen.php) espera la variable $turno
+$turno   = $t;   
 ?>
 <header class="page-head page-head--actions">
   <div>

@@ -43,7 +43,7 @@ class ProductosController extends Controller
         $p  = Producto::buscar($id) ?? $this->noExiste();
 
         $categorias = Categoria::activas();
-        if (!in_array($p['categoria_id'], array_column($categorias, 'id'))) {   // categoría desactivada: la mostramos igual
+        if (!in_array($p['categoria_id'], array_column($categorias, 'id'))) {   
             $categorias[] = ['id' => $p['categoria_id'], 'nombre' => $p['categoria'] . ' (desactivada)'];
         }
         $this->view('productos/form', [

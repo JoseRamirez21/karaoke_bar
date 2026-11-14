@@ -1,5 +1,5 @@
 <?php
-/** Parte común: lo cobrado por método y el efectivo que debería haber. Necesita $resumen y $turno. */
+
 $max = 0.0;
 foreach ($resumen['metodos'] as $m) $max = max($max, (float) $m['total']);
 $esperado = (float) $turno['monto_inicial'] + $resumen['efectivo'];
