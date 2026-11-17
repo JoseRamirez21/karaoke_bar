@@ -4,7 +4,7 @@ Sistema de gestión para un bar karaoke: ventas, caja, mesas, combos, stock y re
 PHP (MVC con PDO) + MySQL + Bootstrap 5 + SweetAlert2. Pensado para XAMPP.
 
 ## Instalación (XAMPP)
-1. Copia la carpeta `karaoke_bar` dentro de `C:\xampp\htdocs\` (si ya tenías una versión anterior, **borra su contenido primero** y pega este: así no quedan archivos viejos. Guarda antes tu `app/config/config.php` si cambiaste la contraseña de MySQL).
+1. Copia la carpeta `karaoke_bar` dentro de `C:\xampp\htdocs\` (si ya tenías una versión anterior, **borra su contenido primero** y pega este: así no quedan archivos viejos. La conexión local está en `app/config/config.php`).
 2. En el panel de XAMPP inicia **Apache** y **MySQL**.
 3. En `http://localhost/phpmyadmin` > **Importar**, elige `database/karaoke_club.sql`.
    Se puede importar más de una vez: no duplica nada ni borra tus datos.
@@ -12,6 +12,21 @@ PHP (MVC con PDO) + MySQL + Bootstrap 5 + SweetAlert2. Pensado para XAMPP.
 
 Requisitos: PHP 8.1 o superior con las extensiones `pdo_mysql` y `mbstring` (XAMPP las trae; `pdo_mysql` a veces hay que activarla quitando el `;` en php.ini).
 
+## Publicar en hosting
+El sistema selecciona `config.php` cuando se abre desde localhost. En un dominio carga `config1.php`. Antes de abrir la web, coloca en ese archivo el host, nombre de base, usuario y contraseña que proporciona el hosting. La configuración de hosting empieza vacía y usa el entorno de producción.
+
+El archivo local `app/config/config.php` se excluye de Git. En una copia nueva para XAMPP, créalo con estos valores:
+
+```php
+<?php
+return [
+    'DB_HOST' => 'localhost',
+    'DB_NAME' => 'karaoke_club',
+    'DB_USER' => 'root',
+    'DB_PASS' => '',
+    'APP_ENV' => 'development',
+];
+```
 ## Usuarios iniciales
 | Usuario | Contraseña | Rol |
 |---------|------------|-----|
@@ -54,7 +69,7 @@ Todo está en la base de datos `karaoke_club`. En phpMyAdmin: entra a la base > 
 
 ## Estructura
 ```
-app/config/      config.php (base de datos, sesión), menu.php (menú por rol)
+app/config/      config.php (XAMPP), config1.php (hosting), menu.php (menú por rol)
 app/core/        Router, Database (PDO), Auth, Csrf, Session, Validar, helpers
 app/controllers/ un controlador por módulo
 app/models/      consultas a la base de datos
@@ -65,4 +80,4 @@ public/          index.php (único punto de entrada), assets/css, assets/js
 Para agregar un módulo: crea el controlador (empieza con `$this->requireAuth([...])`), el modelo y la vista, y activa la opción en `app/config/menu.php`.
 
 ## Antes de usarlo en producción
-En `app/config/config.php` cambia `APP_ENV` a `'production'` para ocultar los detalles de los errores.
+Revisa que `app/config/config1.php` tenga los datos correctos de la base de datos y conserva `APP_ENV` en `'production'`.

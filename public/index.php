@@ -5,17 +5,25 @@ if (PHP_VERSION_ID < 80100) {
     http_response_code(500);
     exit('Este sistema necesita PHP 8.1 o superior. Tu versión es ' . PHP_VERSION . '.');
 }
-foreach (['pdo_mysql', 'mbstring'] as $ext) {
-    if (!extension_loaded($ext)) {
-        http_response_code(500);
-        exit("Falta la extensión de PHP \"$ext\". Actívala en php.ini y reinicia Apache.");
-    }
-}
+
 
 define('ROOT_PATH', dirname(__DIR__));
 define('APP_PATH', ROOT_PATH . '/app');
 
-require APP_PATH . '/config/config.php';
+$settingsFile = is_file(APP_PATH . '/config/config.php') ? 'config.php' : 'config1.php';
+$settings = require APP_PATH . '/config/' . $settingsFile;
+
+define('DB_HOST', $settings['DB_HOST']);
+define('DB_NAME', $settings['DB_NAME']);
+define('DB_USER', $settings['DB_USER']);
+define('DB_PASS', $settings['DB_PASS']);
+define('APP_ENV', $settings['APP_ENV']);
+
+const SESSION_NAME = 'KARAOKE_SESSION';
+const SESSION_IDLE_MIN = 240;
+const DIA_INICIO_HORA = 6;
+
+date_default_timezone_set('America/Lima');
 
 
 $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
