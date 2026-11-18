@@ -35,7 +35,6 @@ class PerfilController extends Controller
 
         Usuario::actualizarPassword(Auth::id(), password_hash($nueva, PASSWORD_DEFAULT));
         session_regenerate_id(true);
-        $_SESSION['pass_default'] = false;
         flash('success', 'Contraseña actualizada.');
         redirect('perfil');
     }

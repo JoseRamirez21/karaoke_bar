@@ -18,30 +18,25 @@ class Router
             $params = array_slice($parts, 2);
 
             if (!preg_match('/^[a-z][a-z0-9]*$/', $c) || !preg_match('/^[a-zA-Z][a-zA-Z0-9]*$/', $m)) {
-                (new ErrorController())->show404();
-                return;
+                $this->show404();
             }
 
             $class = ucfirst($c) . 'Controller';
             if (!is_file(APP_PATH . "/controllers/$class.php") || !class_exists($class)) {
-                (new ErrorController())->show404();
-                return;
+                $this->show404();
             }
 
             self::$controller = $c;
             $obj = new $class();
             if (!method_exists($obj, $m)) {
-                (new ErrorController())->show404();
-                return;
+                $this->show404();
             }
             $ref = new ReflectionMethod($obj, $m);
             if (!$ref->isPublic() || $ref->isConstructor() || $ref->getDeclaringClass()->getName() === 'Controller') {
-                (new ErrorController())->show404();
-                return;
+                $this->show404();
             }
             if (count($params) > $ref->getNumberOfParameters()) {
-                (new ErrorController())->show404();
-                return;
+                $this->show404();
             }
 
             $ref->invokeArgs($obj, $params);
@@ -51,5 +46,11 @@ class Router
             error_log((string) $e);
             (new ErrorController())->show500(APP_ENV === 'development' ? $e->getMessage() : null);
         }
+    }
+
+    private function show404(): never
+    {
+        (new ErrorController())->show404();
+        exit;
     }
 }

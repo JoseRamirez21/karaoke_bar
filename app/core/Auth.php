@@ -3,7 +3,6 @@ class Auth
 {
     
     private const DUMMY_HASH = '$2y$10$ifKon//QTDqwCflK6iYABeuEsp3voiCuuq1BXX3TJSY6c2u1W11PW';
-    private const PASSWORD_INICIAL = 'Admin123*';
 
     public static function check(): bool { return isset($_SESSION['user']); }
     public static function user(): ?array { return $_SESSION['user'] ?? null; }
@@ -24,8 +23,6 @@ class Auth
 
         session_regenerate_id(true);
         $_SESSION['user'] = ['id' => (int) $u['id'], 'nombre' => $u['nombre'], 'usuario' => $u['usuario'], 'rol' => $u['rol']];
-        $_SESSION['pass_default'] = ($password === self::PASSWORD_INICIAL);
-
         if (password_needs_rehash($u['password'], PASSWORD_DEFAULT)) {
             Usuario::actualizarPassword((int) $u['id'], password_hash($password, PASSWORD_DEFAULT));
         }
@@ -35,7 +32,7 @@ class Auth
 
     public static function logout(): void
     {
-        unset($_SESSION['user'], $_SESSION['pass_default']);
+        unset($_SESSION['user']);
         session_regenerate_id(true);
     }
 
@@ -45,7 +42,7 @@ class Auth
         if (!self::check()) return;
         $u = Usuario::buscarPorId(self::id());
         if ($u === null || (int) $u['estado'] !== 1) {
-            unset($_SESSION['user'], $_SESSION['pass_default']);
+            unset($_SESSION['user']);
             flash('error', 'Tu cuenta está desactivada. Habla con el administrador.');
             return;
         }

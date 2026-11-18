@@ -19,7 +19,7 @@ class Session
         
         $now = time();
         if (isset($_SESSION['user'], $_SESSION['_last']) && ($now - $_SESSION['_last']) > SESSION_IDLE_MIN * 60) {
-            unset($_SESSION['user'], $_SESSION['pass_default']);
+            unset($_SESSION['user']);
             flash('warning', 'Tu sesión se cerró por inactividad. Ingresa de nuevo.');
         }
         $_SESSION['_last'] = $now;

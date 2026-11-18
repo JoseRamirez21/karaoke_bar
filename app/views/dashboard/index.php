@@ -9,14 +9,6 @@ $nombre1 = explode(' ', trim(Auth::user()['nombre']))[0];
   <p><?= e(fecha_larga()) ?></p>
 </header>
 
-<?php if (!empty($_SESSION['pass_default'])): ?>
-  <div class="notice notice--warn" role="alert">
-    <i class="bi bi-shield-exclamation"></i>
-    <span>Sigues usando la contraseña inicial. Cámbiala para proteger las ventas.</span>
-    <a class="btn btn-sm btn-brass" href="<?= url('perfil') ?>">Cambiar contraseña</a>
-  </div>
-<?php endif; ?>
-
 <nav class="accesos" aria-label="Accesos rápidos">
   <a class="btn btn-brass" href="<?= url('ventas') ?>"><i class="bi bi-receipt"></i> Vender</a>
   <a class="btn btn-outline-field" href="<?= url('mesas') ?>"><i class="bi bi-columns-gap"></i> Mesas</a>
