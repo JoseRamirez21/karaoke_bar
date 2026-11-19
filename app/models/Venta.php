@@ -1,7 +1,6 @@
 <?php
 class Venta
 {
-    
     public static function productosVendibles(): array
     {
         return Database::all(
@@ -11,13 +10,10 @@ class Venta
               ORDER BY c.nombre, p.nombre'
         );
     }
-
     public static function metodos(): array
     {
         return Database::all('SELECT id, nombre, es_efectivo FROM metodos_pago WHERE estado = 1 ORDER BY id');
     }
-
-    
     public static function mesasAbiertas(): array
     {
         return Database::all(
@@ -27,15 +23,11 @@ class Venta
               ORDER BY CAST(m.numero AS UNSIGNED), m.numero"
         );
     }
-
-    
     public static function crear(int $usuarioId, int $turnoId, ?int $sesionId, int $metodoId, array $items, array $combos, ?string $recibido): array
     {
         $pdo = Database::pdo();
         $pdo->beginTransaction();
         try {
-            
-            
             if (!Database::one("SELECT id FROM turnos_caja WHERE id = ? AND estado = 'abierto' FOR UPDATE", [$turnoId])) {
                 throw new AppException('Tu turno ya está cerrado. Abre uno nuevo para vender.');
             }
@@ -44,11 +36,8 @@ class Venta
             }
             $metodo = Database::one('SELECT id, nombre, es_efectivo FROM metodos_pago WHERE id = ? AND estado = 1', [$metodoId]);
             if (!$metodo) throw new AppException('Elige cómo paga el cliente.');
-
-            
             $necesita = [];
             foreach ($items as $pid => $cant) $necesita[(int) $pid] = ($necesita[(int) $pid] ?? 0) + $cant;
-
             $lineasCombo = [];
             ksort($combos);
             foreach ($combos as $cid => $cant) {
@@ -62,8 +51,6 @@ class Venta
                 foreach ($comp as $x) $necesita[(int) $x['producto_id']] = ($necesita[(int) $x['producto_id']] ?? 0) + (int) $x['cantidad'] * $cant;
                 $lineasCombo[] = ['combo' => $co, 'cant' => $cant];
             }
-
-            
             ksort($necesita);
             $productos = [];
             foreach ($necesita as $pid => $cant) {
@@ -81,8 +68,6 @@ class Venta
                 }
                 $productos[$pid] = $p;
             }
-
-            
             $lineas = [];
             $total  = 0.0;
             foreach ($items as $pid => $cant) {
@@ -98,7 +83,6 @@ class Venta
             }
             if (!$lineas) throw new AppException('Agrega al menos un producto al pedido.');
             $total = round($total, 2);
-
             $vuelto = null;
             if ((int) $metodo['es_efectivo'] === 1 && $recibido !== null) {
                 if ((float) $recibido + 0.004 < $total) {
@@ -106,8 +90,6 @@ class Venta
                 }
                 $vuelto = round((float) $recibido - $total, 2);
             }
-
-            
             Database::run(
                 "INSERT INTO ventas (codigo, sesion_mesa_id, turno_id, usuario_id, metodo_pago_id, total, estado)
                  VALUES (?, ?, ?, ?, ?, ?, 'pagada')",
@@ -116,14 +98,12 @@ class Venta
             $id     = Database::lastId();
             $codigo = 'T-' . str_pad((string) $id, 6, '0', STR_PAD_LEFT);
             Database::run('UPDATE ventas SET codigo = ? WHERE id = ?', [$codigo, $id]);
-
             foreach ($lineas as $l) {
                 Database::run(
                     'INSERT INTO detalle_venta (venta_id, producto_id, combo_id, descripcion, cantidad, precio_unitario, subtotal) VALUES (?,?,?,?,?,?,?)',
                     [$id, $l['producto_id'], $l['combo_id'], $l['desc'], $l['cant'], $l['precio'], number_format($l['sub'], 2, '.', '')]
                 );
             }
-            
             foreach ($necesita as $pid => $cant) {
                 $nuevo = (int) $productos[$pid]['stock'] - $cant;
                 Database::run('UPDATE productos SET stock = ? WHERE id = ?', [$nuevo, $pid]);
@@ -139,7 +119,6 @@ class Venta
             throw $e;
         }
     }
-
     public static function buscar(int $id): ?array
     {
         return Database::one(
@@ -154,20 +133,15 @@ class Venta
             [$id]
         );
     }
-
     public static function detalle(int $id): array
     {
         return Database::all('SELECT descripcion, cantidad, precio_unitario, subtotal, combo_id FROM detalle_venta WHERE venta_id = ? ORDER BY id', [$id]);
     }
-
-    
     public static function entregar(int $id): void
     {
         $n = Database::run("UPDATE ventas SET estado = 'entregada', entregada_en = NOW() WHERE id = ? AND estado = 'pagada'", [$id]);
         if ($n === 0) throw new AppException('Este pedido ya fue entregado o está anulado.');
     }
-
-    
     public static function razonNoAnular(array $venta, ?array $turno, int $usuarioId, bool $esAdmin): ?string
     {
         if ($venta['estado'] === 'anulada')   return 'Este pedido ya está anulado.';
@@ -176,8 +150,6 @@ class Venta
         if (!$esAdmin && (int) $venta['usuario_id'] !== $usuarioId) return 'Solo quien cobró el pedido o el administrador puede anularlo.';
         return null;
     }
-
-    
     public static function anular(int $id, int $usuarioId, bool $esAdmin, string $motivo): void
     {
         $pdo = Database::pdo();
@@ -185,15 +157,11 @@ class Venta
         try {
             $previo = Database::one('SELECT turno_id FROM ventas WHERE id = ?', [$id]);
             if (!$previo) throw new AppException('El pedido no existe.');
-
-            
             $turno = Database::one('SELECT id, estado FROM turnos_caja WHERE id = ? FOR UPDATE', [$previo['turno_id']]);
             $v     = Database::one('SELECT * FROM ventas WHERE id = ? FOR UPDATE', [$id]);
             if (!$v) throw new AppException('El pedido no existe.');
-
             $razon = self::razonNoAnular($v, $turno, $usuarioId, $esAdmin);
             if ($razon !== null) throw new AppException($razon);
-
             $descontado = Database::all(
                 "SELECT producto_id, SUM(cantidad) AS cantidad FROM movimientos_stock WHERE tipo = 'venta' AND motivo = ? GROUP BY producto_id ORDER BY producto_id",
                 ['Venta ' . $v['codigo']]

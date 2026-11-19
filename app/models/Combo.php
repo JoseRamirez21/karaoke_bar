@@ -2,7 +2,6 @@
 class Combo
 {
     private const VIGENTE = "c.estado = 1 AND (c.vigente_desde IS NULL OR c.vigente_desde <= CURDATE()) AND (c.vigente_hasta IS NULL OR c.vigente_hasta >= CURDATE())";
-
     public static function todos(): array
     {
         return Database::all(
@@ -11,8 +10,6 @@ class Combo
                FROM combos c ORDER BY c.estado DESC, c.nombre'
         );
     }
-
-    
     public static function resumenes(): array
     {
         $filas = Database::all(
@@ -21,25 +18,19 @@ class Combo
         );
         return array_column($filas, 'texto', 'combo_id');
     }
-
     public static function buscar(int $id): ?array
     {
         return Database::one('SELECT * FROM combos WHERE id = ?', [$id]);
     }
-
-    
     public static function componentes(int $id): array
     {
         $filas = Database::all('SELECT producto_id, cantidad FROM combo_productos WHERE combo_id = ?', [$id]);
         return array_map('intval', array_column($filas, 'cantidad', 'producto_id'));
     }
-
     public static function nombreEnUso(string $nombre, int $exceptoId = 0): bool
     {
         return (int) Database::value('SELECT COUNT(*) FROM combos WHERE nombre = ? AND id <> ?', [$nombre, $exceptoId]) > 0;
     }
-
-    
     public static function guardar(?int $id, array $d, array $componentes): int
     {
         $pdo = Database::pdo();
@@ -64,13 +55,10 @@ class Combo
             throw $e;
         }
     }
-
     public static function setEstado(int $id, int $estado): void
     {
         Database::run('UPDATE combos SET estado = ? WHERE id = ?', [$estado, $id]);
     }
-
-    
     public static function vendibles(): array
     {
         $combos = Database::all('SELECT c.id, c.nombre, c.descripcion, c.precio FROM combos c WHERE ' . self::VIGENTE . ' ORDER BY c.nombre');

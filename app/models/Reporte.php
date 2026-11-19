@@ -2,13 +2,11 @@
 
 class Reporte
 {
-    
     public static function rango(string $desde, string $hasta): array
     {
         $h = sprintf(' %02d:00:00', DIA_INICIO_HORA);
         return [$desde . $h, date('Y-m-d', strtotime($hasta . ' +1 day')) . $h];
     }
-
     public static function resumen(string $ini, string $fin): array
     {
         $r = Database::one(
@@ -24,7 +22,6 @@ class Reporte
         $r['ticket'] = $r['n'] > 0 ? $r['total'] / $r['n'] : 0.0;
         return $r;
     }
-
     public static function porDia(string $ini, string $fin): array
     {
         return Database::all(
@@ -33,7 +30,6 @@ class Reporte
             [$ini, $fin]
         );
     }
-
     public static function porMetodo(string $ini, string $fin): array
     {
         return Database::all(
@@ -44,7 +40,6 @@ class Reporte
             [$ini, $fin]
         );
     }
-
     public static function topProductos(string $ini, string $fin, int $limite = 15): array
     {
         $limite = max(1, $limite);
@@ -56,7 +51,6 @@ class Reporte
             [$ini, $fin]
         );
     }
-
     public static function porCajero(string $ini, string $fin): array
     {
         return Database::all(
@@ -67,7 +61,6 @@ class Reporte
             [$ini, $fin]
         );
     }
-
     public static function turnos(string $ini, string $fin): array
     {
         return Database::all(
@@ -77,7 +70,6 @@ class Reporte
             [$ini, $fin]
         );
     }
-
     public static function ventasDetalle(string $ini, string $fin): array
     {
         return Database::all(

@@ -8,7 +8,6 @@ class Usuario
             [$usuario]
         );
     }
-
     public static function buscarPorId(int $id): ?array
     {
         return Database::one(
@@ -16,17 +15,14 @@ class Usuario
             [$id]
         );
     }
-
     public static function actualizarPassword(int $id, string $hash): void
     {
         Database::run('UPDATE usuarios SET password = ? WHERE id = ?', [$hash, $id]);
     }
-
     public static function registrarLogin(int $id): void
     {
         Database::run('UPDATE usuarios SET ultimo_login = NOW() WHERE id = ?', [$id]);
     }
-
     public static function todos(): array
     {
         return Database::all(
@@ -35,17 +31,14 @@ class Usuario
               ORDER BY u.estado DESC, r.id, u.nombre'
         );
     }
-
     public static function roles(): array
     {
         return Database::all('SELECT id, nombre FROM roles ORDER BY id');
     }
-
     public static function usuarioEnUso(string $usuario, int $exceptoId = 0): bool
     {
         return (int) Database::value('SELECT COUNT(*) FROM usuarios WHERE usuario = ? AND id <> ?', [$usuario, $exceptoId]) > 0;
     }
-
     public static function crear(array $d): int
     {
         Database::run(
@@ -54,7 +47,6 @@ class Usuario
         );
         return Database::lastId();
     }
-
     public static function actualizar(int $id, array $d): void
     {
         Database::run(
@@ -62,7 +54,6 @@ class Usuario
             [$d['rol_id'], $d['nombre'], $d['usuario'], $d['telefono'] ?: null, $id]
         );
     }
-
     public static function setEstado(int $id, int $estado): void
     {
         Database::run('UPDATE usuarios SET estado = ? WHERE id = ?', [$estado, $id]);

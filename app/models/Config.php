@@ -3,7 +3,6 @@
 class Config
 {
     private static ?array $cache = null;
-
     public static function get(string $clave, string $default = ''): string
     {
         if (self::$cache === null) {
@@ -15,7 +14,6 @@ class Config
         }
         return self::$cache[$clave] ?? $default;
     }
-
     public static function set(string $clave, string $valor): void
     {
         Database::run('INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)', [$clave, $valor]);

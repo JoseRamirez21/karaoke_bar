@@ -1,12 +1,10 @@
 <?php
 class Caja
 {
-    
     public static function abierto(int $usuarioId): ?array
     {
         return Database::one("SELECT * FROM turnos_caja WHERE usuario_id = ? AND estado = 'abierto' ORDER BY id DESC LIMIT 1", [$usuarioId]);
     }
-
     public static function buscar(int $id): ?array
     {
         return Database::one(
@@ -14,8 +12,6 @@ class Caja
             [$id]
         );
     }
-
-    
     public static function abrir(int $usuarioId, string $montoInicial): int
     {
         $pdo = Database::pdo();
@@ -34,8 +30,6 @@ class Caja
             throw $e;
         }
     }
-
-    
     public static function resumen(int $turnoId): array
     {
         $metodos = Database::all(
@@ -55,12 +49,9 @@ class Caja
         }
         $anuladas = Database::one("SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS total FROM ventas WHERE turno_id = ? AND estado = 'anulada'", [$turnoId]);
         $porEntregar = (int) Database::value("SELECT COUNT(*) FROM ventas WHERE turno_id = ? AND estado = 'pagada'", [$turnoId]);
-
         return ['metodos' => $metodos, 'total' => $total, 'n' => $n, 'efectivo' => $efectivo,
                 'anuladas' => $anuladas, 'por_entregar' => $porEntregar];
     }
-
-    
     public static function cerrar(int $id, string $contado, string $observacion): array
     {
         $pdo = Database::pdo();
@@ -73,7 +64,6 @@ class Caja
             $r          = self::resumen($id);
             $esperado   = round((float) $t['monto_inicial'] + $r['efectivo'], 2);
             $diferencia = round((float) $contado - $esperado, 2);
-
             if (abs($diferencia) >= 0.005 && mb_strlen($observacion) < 3) {
                 $texto = $diferencia < 0 ? 'faltan ' : 'sobran ';
                 throw new AppException('El efectivo contado no coincide con lo esperado (' . $texto . money(abs($diferencia)) . '). Escribe una explicación para poder cerrar.');
@@ -91,8 +81,6 @@ class Caja
             throw $e;
         }
     }
-
-    
     public static function historial(?int $usuarioId, int $limite = 15): array
     {
         $limite = max(1, $limite);

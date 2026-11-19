@@ -2,12 +2,10 @@
 
 class SesionMesa
 {
-    
     public static function abierta(int $mesaId): ?array
     {
         return Database::one("SELECT * FROM sesiones_mesa WHERE mesa_id = ? AND estado = 'abierta' ORDER BY id DESC LIMIT 1", [$mesaId]);
     }
-
     public static function buscar(int $id): ?array
     {
         return Database::one(
@@ -20,8 +18,6 @@ class SesionMesa
             [$id]
         );
     }
-
-    
     public static function abrir(int $mesaId, int $usuarioId, string $cliente): int
     {
         $pdo = Database::pdo();
@@ -31,7 +27,6 @@ class SesionMesa
             if (!$mesa)                         throw new AppException('La mesa no existe.');
             if ($mesa['estado'] === 'inactiva') throw new AppException('Esta mesa está desactivada.');
             if (self::abierta($mesaId))         throw new AppException('Esta mesa ya está abierta.');
-
             Database::run('INSERT INTO sesiones_mesa (mesa_id, abierta_por, cliente) VALUES (?, ?, ?)',
                 [$mesaId, $usuarioId, $cliente !== '' ? $cliente : null]);
             $id = Database::lastId();
@@ -43,8 +38,6 @@ class SesionMesa
             throw $e;
         }
     }
-
-    
     public static function ventas(int $sesionId): array
     {
         return Database::all(
@@ -56,8 +49,6 @@ class SesionMesa
             [$sesionId]
         );
     }
-
-    
     public static function resumen(int $sesionId): array
     {
         $r = Database::one(
@@ -69,8 +60,6 @@ class SesionMesa
         );
         return ['total' => (float) $r['total'], 'n' => (int) $r['n'], 'por_entregar' => (int) $r['por_entregar']];
     }
-
-    
     public static function cerrar(int $id, int $usuarioId): array
     {
         $pdo = Database::pdo();
@@ -78,7 +67,6 @@ class SesionMesa
         try {
             $s = Database::one('SELECT * FROM sesiones_mesa WHERE id = ? FOR UPDATE', [$id]);
             if (!$s || $s['estado'] !== 'abierta') throw new AppException('Esta mesa ya fue cerrada.');
-
             $r = self::resumen($id);
             if ($r['por_entregar'] > 0) {
                 $n = $r['por_entregar'];
