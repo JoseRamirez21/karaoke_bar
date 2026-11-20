@@ -26,7 +26,7 @@ class CategoriasController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $c  = Categoria::buscar($id) ?? $this->noExiste();
+        $c  = Categoria::buscar($id) ?? $this->notFound();
 
         $nombre = post('nombre');
         $err = $this->validar($nombre, $id);
@@ -40,7 +40,7 @@ class CategoriasController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $c  = Categoria::buscar($id) ?? $this->noExiste();
+        $c  = Categoria::buscar($id) ?? $this->notFound();
 
         if ((int) $c['estado'] === 1) {
             $activos = (int) Database::value('SELECT COUNT(*) FROM productos WHERE categoria_id = ? AND estado = 1', [$id]);
@@ -61,9 +61,4 @@ class CategoriasController extends Controller
         return null;
     }
 
-    private function noExiste(): never
-    {
-        (new ErrorController())->show404();
-        exit;
-    }
 }

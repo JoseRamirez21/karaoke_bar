@@ -22,14 +22,14 @@ class CombosController extends Controller
         [$d, $comp, $err] = $this->datos(0);
         if ($err) $this->fallar('combos/crear', $err);
 
-        $id = Combo::guardar(null, $d, $comp);
+        Combo::guardar(null, $d, $comp);
         $this->listo('combos', 'Combo creado.');
     }
 
     public function editar(string $id = '0'): void
     {
         $id = $this->idOr404($id);
-        $c  = Combo::buscar($id) ?? $this->noExiste();
+        $c  = Combo::buscar($id) ?? $this->notFound();
         $this->view('combos/form', ['title' => 'Editar combo', 'modo' => 'editar', 'c' => $c, 'actuales' => Combo::componentes($id), 'productos' => $this->productos()]);
     }
 
@@ -37,7 +37,7 @@ class CombosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $c  = Combo::buscar($id) ?? $this->noExiste();
+        $c  = Combo::buscar($id) ?? $this->notFound();
         [$d, $comp, $err] = $this->datos($id);
         if ($err) $this->fallar("combos/editar/$id", $err);
 
@@ -49,7 +49,7 @@ class CombosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $c  = Combo::buscar($id) ?? $this->noExiste();
+        $c  = Combo::buscar($id) ?? $this->notFound();
         $nuevo = (int) $c['estado'] === 1 ? 0 : 1;
         Combo::setEstado($id, $nuevo);
         $this->listo('combos', $nuevo ? 'Combo activado: ya se puede vender.' : 'Combo desactivado: ya no aparece para vender.');
@@ -101,9 +101,4 @@ class CombosController extends Controller
         return [$d, $comp, null];
     }
 
-    private function noExiste(): never
-    {
-        (new ErrorController())->show404();
-        exit;
-    }
 }

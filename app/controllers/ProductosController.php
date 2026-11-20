@@ -40,7 +40,7 @@ class ProductosController extends Controller
     public function editar(string $id = '0'): void
     {
         $id = $this->idOr404($id);
-        $p  = Producto::buscar($id) ?? $this->noExiste();
+        $p  = Producto::buscar($id) ?? $this->notFound();
 
         $categorias = Categoria::activas();
         if (!in_array($p['categoria_id'], array_column($categorias, 'id'))) {   
@@ -56,7 +56,7 @@ class ProductosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $p  = Producto::buscar($id) ?? $this->noExiste();
+        $p  = Producto::buscar($id) ?? $this->notFound();
 
         $d   = $this->datos();
         $err = $this->validar($d, $id, (int) $p['categoria_id']);
@@ -70,7 +70,7 @@ class ProductosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $p  = Producto::buscar($id) ?? $this->noExiste();
+        $p  = Producto::buscar($id) ?? $this->notFound();
 
         $nuevo = (int) $p['estado'] === 1 ? 0 : 1;
         Producto::setEstado($id, $nuevo);
@@ -81,7 +81,7 @@ class ProductosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $p  = Producto::buscar($id) ?? $this->noExiste();
+        $p  = Producto::buscar($id) ?? $this->notFound();
 
         $tipo     = post('tipo');
         $cantidad = Validar::entero(post('cantidad'));
@@ -123,9 +123,4 @@ class ProductosController extends Controller
         return null;
     }
 
-    private function noExiste(): never
-    {
-        (new ErrorController())->show404();
-        exit;
-    }
 }

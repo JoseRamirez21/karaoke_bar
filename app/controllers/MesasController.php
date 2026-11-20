@@ -39,7 +39,7 @@ class MesasController extends Controller
     {
         $this->soloAdmin();
         $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
+        $m  = Mesa::buscar($id) ?? $this->notFound();
         $this->view('mesas/form', ['title' => 'Editar mesa', 'modo' => 'editar', 'm' => $m]);
     }
 
@@ -48,7 +48,7 @@ class MesasController extends Controller
         $this->soloAdmin();
         $this->requirePost();
         $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
+        $m  = Mesa::buscar($id) ?? $this->notFound();
 
         $numero = post('numero');
         $cap    = (int) post('capacidad');
@@ -65,7 +65,7 @@ class MesasController extends Controller
         $this->soloAdmin();
         $this->requirePost();
         $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
+        $m  = Mesa::buscar($id) ?? $this->notFound();
 
         if ($m['estado'] === 'inactiva') {
             Mesa::setEstado($id, 'libre');
@@ -83,7 +83,7 @@ class MesasController extends Controller
     public function abrir(string $id = '0'): void
     {
         $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
+        $m  = Mesa::buscar($id) ?? $this->notFound();
 
         if ($m['estado'] === 'inactiva') {
             flash('error', 'Mesa desactivada.');
@@ -98,7 +98,7 @@ class MesasController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $m  = Mesa::buscar($id) ?? $this->noExiste();
+        $m  = Mesa::buscar($id) ?? $this->notFound();
 
         $cliente = post('cliente');
         if (mb_strlen($cliente) > 100) $this->fallar("mesas/abrir/$id", 'La referencia es muy larga (máximo 100 caracteres).');
@@ -115,7 +115,7 @@ class MesasController extends Controller
     public function cuenta(string $id = '0'): void
     {
         $id = $this->idOr404($id);
-        $s  = SesionMesa::buscar($id) ?? $this->noExiste();
+        $s  = SesionMesa::buscar($id) ?? $this->notFound();
         $this->view('mesas/cuenta', [
             'title'     => 'Mesa ' . $s['mesa'],
             's'         => $s,
@@ -128,7 +128,7 @@ class MesasController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $s  = SesionMesa::buscar($id) ?? $this->noExiste();
+        $s  = SesionMesa::buscar($id) ?? $this->notFound();
 
         try {
             $r = SesionMesa::cerrar($id, Auth::id());
@@ -142,10 +142,7 @@ class MesasController extends Controller
 
     private function soloAdmin(): void
     {
-        if (!Auth::is('admin')) {
-            (new ErrorController())->show403();
-            exit;
-        }
+        if (!Auth::is('admin')) $this->forbidden();
     }
 
     private function validar(string $numero, int $cap, int $exceptoId): ?string
@@ -156,9 +153,4 @@ class MesasController extends Controller
         return null;
     }
 
-    private function noExiste(): never
-    {
-        (new ErrorController())->show404();
-        exit;
-    }
 }

@@ -85,7 +85,7 @@ class VentasController extends Controller
     {
         $id = $this->idOr404($id);
         $v  = Venta::buscar($id);
-        if (!$v) { (new ErrorController())->show404(); exit; }
+        if (!$v) $this->notFound();
 
         $turno = Database::one('SELECT id, estado FROM turnos_caja WHERE id = ?', [$v['turno_id']]);
         $this->view('ventas/ticket', [
@@ -102,7 +102,7 @@ class VentasController extends Controller
         $this->requirePost();
         $id = $this->idOr404($id);
         $v  = Venta::buscar($id);
-        if (!$v) { (new ErrorController())->show404(); exit; }
+        if (!$v) $this->notFound();
 
         
         $volver = post('volver');
@@ -122,7 +122,7 @@ class VentasController extends Controller
         $this->requirePost();
         $id = $this->idOr404($id);
         $v  = Venta::buscar($id);
-        if (!$v) { (new ErrorController())->show404(); exit; }
+        if (!$v) $this->notFound();
 
         $ruta   = 'ventas/ticket/' . $id;
         $motivo = post('motivo');

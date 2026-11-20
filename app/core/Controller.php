@@ -20,10 +20,7 @@ abstract class Controller
         if (!Auth::check()) redirect('auth/login');
         Auth::refresh();
         if (!Auth::check()) redirect('auth/login');
-        if ($roles && !in_array(Auth::role(), $roles, true)) {
-            (new ErrorController())->show403();
-            exit;
-        }
+        if ($roles && !in_array(Auth::role(), $roles, true)) $this->forbidden();
     }
 
     
@@ -41,11 +38,20 @@ abstract class Controller
     protected function idOr404(string $id): int
     {
         $n = (int) $id;
-        if ($n <= 0 || (string) $n !== $id) {
-            (new ErrorController())->show404();
-            exit;
-        }
+        if ($n <= 0 || (string) $n !== $id) $this->notFound();
         return $n;
+    }
+
+    protected function notFound(): never
+    {
+        (new ErrorController())->show404();
+        exit;
+    }
+
+    protected function forbidden(): never
+    {
+        (new ErrorController())->show403();
+        exit;
     }
 
     

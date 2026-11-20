@@ -59,11 +59,8 @@ class CajaController extends Controller
     {
         $id = $this->idOr404($id);
         $t  = Caja::buscar($id);
-        if (!$t) { (new ErrorController())->show404(); exit; }
-        if (!Auth::is('admin') && (int) $t['usuario_id'] !== Auth::id()) {
-            (new ErrorController())->show403();
-            exit;
-        }
+        if (!$t) $this->notFound();
+        if (!Auth::is('admin') && (int) $t['usuario_id'] !== Auth::id()) $this->forbidden();
         $this->view('caja/detalle', ['title' => 'Turno #' . $id, 't' => $t, 'resumen' => Caja::resumen($id)]);
     }
 }

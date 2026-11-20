@@ -32,7 +32,7 @@ class UsuariosController extends Controller
     public function editar(string $id = '0'): void
     {
         $id = $this->idOr404($id);
-        $u  = Usuario::buscarPorId($id) ?? $this->noExiste();
+        $u  = Usuario::buscarPorId($id) ?? $this->notFound();
         $this->view('usuarios/form', ['title' => 'Editar usuario', 'modo' => 'editar', 'u' => $u, 'roles' => Usuario::roles()]);
     }
 
@@ -40,7 +40,7 @@ class UsuariosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $u  = Usuario::buscarPorId($id) ?? $this->noExiste();
+        $u  = Usuario::buscarPorId($id) ?? $this->notFound();
 
         $d = $this->datos();
         if ($id === Auth::id()) $d['rol_id'] = (int) $u['rol_id']; 
@@ -56,7 +56,7 @@ class UsuariosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $u  = Usuario::buscarPorId($id) ?? $this->noExiste();
+        $u  = Usuario::buscarPorId($id) ?? $this->notFound();
 
         if ($id === Auth::id()) {
             flash('error', 'No puedes desactivar tu propia cuenta.');
@@ -71,7 +71,7 @@ class UsuariosController extends Controller
     {
         $this->requirePost();
         $id = $this->idOr404($id);
-        $u  = Usuario::buscarPorId($id) ?? $this->noExiste();
+        $u  = Usuario::buscarPorId($id) ?? $this->notFound();
 
         $pass = (string) ($_POST['password'] ?? '');
         $err  = Validar::password($pass);
@@ -101,9 +101,4 @@ class UsuariosController extends Controller
         return null;
     }
 
-    private function noExiste(): never
-    {
-        (new ErrorController())->show404();
-        exit;
-    }
 }
